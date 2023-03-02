@@ -1,4 +1,4 @@
-package connectorname
+package databricks
 
 import sdk "github.com/conduitio/conduit-connector-sdk"
 

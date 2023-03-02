@@ -1,4 +1,4 @@
-module github.com/conduitio/conduit-connector-connectorname
+module github.com/conduitio-labs/conduit-connector-databricks
 
 go 1.19
 

@@ -1,4 +1,4 @@
-package connectorname
+package databricks
 
 //go:generate paramgen -output=paramgen_dest.go DestinationConfig
 
