@@ -18,11 +18,9 @@ package databricks
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
-	_ "github.com/databricks/databricks-sql-go"
 )
 
 type Config struct {
@@ -31,11 +29,16 @@ type Config struct {
 	DSN string `json:"dsn" validate:"required"`
 }
 
+type Client interface {
+	Open(ctx context.Context, dsn string) error
+	Close() error
+}
+
 type Destination struct {
 	sdk.UnimplementedDestination
 
 	config Config
-	client sqlClient
+	client Client
 }
 
 type DestinationConfig struct {
@@ -44,8 +47,13 @@ type DestinationConfig struct {
 }
 
 func NewDestination() sdk.Destination {
-	// Create Destination and wrap it in the default middleware.
-	return sdk.DestinationWithMiddleware(&Destination{})
+	return NewDestinationWithClient(newClient())
+}
+
+func NewDestinationWithClient(c Client) sdk.Destination {
+	return sdk.DestinationWithMiddleware(
+		&Destination{client: c},
+	)
 }
 
 func (d *Destination) Parameters() map[string]sdk.Parameter {
@@ -62,22 +70,21 @@ func (d *Destination) Configure(ctx context.Context, cfg map[string]string) erro
 }
 
 func (d *Destination) Open(ctx context.Context) error {
-	db, err := sql.Open("databricks", d.config.DSN)
-	if err != nil {
-		return fmt.Errorf("failed opening database: %w", err)
+	sdk.Logger(ctx).Info().Msg("opening the connector")
+
+	if err := d.client.Open(ctx, d.config.DSN); err != nil {
+		return fmt.Errorf("failed opening client: %w", err)
 	}
-	if err = db.PingContext(ctx); err != nil {
-		return fmt.Errorf("failed pinging database: %w", err)
-	}
-	d.client = newClient(db)
+
 	return nil
 }
 
 func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, error) {
-	sdk.Logger(ctx).Info().Msgf("writing %v records", len(records))
+	sdk.Logger(ctx).Trace().Msgf("writing %v records", len(records))
 	return 0, nil
 }
 
 func (d *Destination) Teardown(ctx context.Context) error {
+	sdk.Logger(ctx).Info().Msg("tearing down the connector")
 	return d.client.Close()
 }

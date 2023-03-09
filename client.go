@@ -14,19 +14,40 @@
 
 package databricks
 
-import "database/sql"
+import (
+	"context"
+	"database/sql"
+	"fmt"
+
+	_ "github.com/databricks/databricks-sql-go"
+)
 
 type sqlClient struct {
 	db *sql.DB
 }
 
-func newClient(db *sql.DB) sqlClient {
-	return sqlClient{db: db}
+func newClient() *sqlClient {
+	return &sqlClient{}
+}
+
+func (c sqlClient) Open(ctx context.Context, dsn string) error {
+	db, err := sql.Open("databricks", dsn)
+
+	if err != nil {
+		return fmt.Errorf("cannot open database: %w", err)
+	}
+	if err = db.PingContext(ctx); err != nil {
+		return fmt.Errorf("failed to ping database: %w", err)
+	}
+	c.db = db
+
+	return nil
 }
 
 func (c sqlClient) Close() error {
 	if c.db != nil {
 		return c.db.Close()
 	}
+
 	return nil
 }
