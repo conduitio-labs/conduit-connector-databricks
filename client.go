@@ -14,21 +14,19 @@
 
 package databricks
 
-import (
-	sdk "github.com/conduitio/conduit-connector-sdk"
-)
+import "database/sql"
 
-// version is set during the build process with ldflags (see Makefile).
-// Default version matches default from runtime/debug.
-var version = "(devel)"
+type sqlClient struct {
+	db *sql.DB
+}
 
-// Specification returns the connector's specification.
-func Specification() sdk.Specification {
-	return sdk.Specification{
-		Name:        "databricks",
-		Summary:     "A Databricks connector.",
-		Description: "A Databricks connector.",
-		Version:     version,
-		Author:      "Meroxa, Inc.",
+func newClient(db *sql.DB) sqlClient {
+	return sqlClient{db: db}
+}
+
+func (c sqlClient) Close() error {
+	if c.db != nil {
+		return c.db.Close()
 	}
+	return nil
 }
