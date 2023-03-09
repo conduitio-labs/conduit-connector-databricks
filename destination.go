@@ -74,6 +74,7 @@ func (d *Destination) Open(ctx context.Context) error {
 }
 
 func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, error) {
+	sdk.Logger(ctx).Trace().Msgf("writing %v records", len(records))
 	return 0, nil
 }
 
