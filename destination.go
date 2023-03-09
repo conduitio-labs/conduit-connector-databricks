@@ -1,6 +1,20 @@
+// Copyright © 2023 Meroxa, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package databricks
 
-//go:generate paramgen -output=paramgen_dest.go DestinationConfig
+//go:generate paramgen -output=paramgen_dest.go Config
 
 import (
 	"context"
@@ -9,17 +23,21 @@ import (
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
+type Config struct {
+	// DSN is a data source name connection string
+	// https://docs.databricks.com/dev-tools/go-sql-driver.html#connect-with-a-dsn-connection-string
+	DSN string `json:"dsn" validate:"required"`
+}
+
 type Destination struct {
 	sdk.UnimplementedDestination
 
-	config DestinationConfig
+	config Config
 }
 
 type DestinationConfig struct {
 	// Config includes parameters that are the same in the source and destination.
 	Config
-	// DestinationConfigParam must be either yes or no (defaults to yes).
-	DestinationConfigParam string `validate:"inclusion=yes|no" default:"yes"`
 }
 
 func NewDestination() sdk.Destination {

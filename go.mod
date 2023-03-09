@@ -1,6 +1,6 @@
 module github.com/conduitio-labs/conduit-connector-databricks
 
-go 1.19
+go 1.20
 
 require github.com/conduitio/conduit-connector-sdk v0.5.1
 

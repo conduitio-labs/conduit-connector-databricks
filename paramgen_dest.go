@@ -7,19 +7,11 @@ import (
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
-func (DestinationConfig) Parameters() map[string]sdk.Parameter {
+func (Config) Parameters() map[string]sdk.Parameter {
 	return map[string]sdk.Parameter{
-		"destinationConfigParam": {
-			Default:     "yes",
-			Description: "destinationConfigParam must be either yes or no (defaults to yes).",
-			Type:        sdk.ParameterTypeString,
-			Validations: []sdk.Validation{
-				sdk.ValidationInclusion{List: []string{"yes", "no"}},
-			},
-		},
-		"global_config_param_name": {
+		"dsn": {
 			Default:     "",
-			Description: "global_config_param_name is named global_config_param_name and needs to be provided by the user.",
+			Description: "dsn is a data source name connection string https://docs.databricks.com/dev-tools/go-sql-driver.html#connect-with-a-dsn-connection-string",
 			Type:        sdk.ParameterTypeString,
 			Validations: []sdk.Validation{
 				sdk.ValidationRequired{},
