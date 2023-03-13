@@ -18,11 +18,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/rs/zerolog"
 	"time"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	_ "github.com/databricks/databricks-sql-go" // blank import because it's a driver
+	"github.com/rs/zerolog"
 )
 
 func init() {
