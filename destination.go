@@ -14,7 +14,7 @@
 
 package databricks
 
-//go:generate paramgen -output=paramgen_dest.go Config
+//go:generate paramgen -output=paramgen_config.go Config
 
 import (
 	"context"
