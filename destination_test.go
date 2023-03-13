@@ -29,12 +29,12 @@ func TestConfigure(t *testing.T) {
 	is := is.New(t)
 	ctx := context.Background()
 	client := mock.NewClient(gomock.NewController(t))
-
-	underTest := databricks.NewDestinationWithClient(client)
 	cfgMap := map[string]string{"token": "test"}
 	var cfg databricks.Config
 	err := sdk.Util.ParseConfig(cfgMap, &cfg)
 	is.NoErr(err)
+
+	underTest := databricks.NewDestinationWithClient(client)
 	err = underTest.Configure(ctx, cfgMap)
 	is.NoErr(err)
 
