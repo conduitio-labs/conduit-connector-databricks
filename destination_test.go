@@ -16,11 +16,11 @@ package databricks_test
 
 import (
 	"context"
-	"github.com/conduitio-labs/conduit-connector-databricks/mock"
-	"github.com/golang/mock/gomock"
 	"testing"
 
 	databricks "github.com/conduitio-labs/conduit-connector-databricks"
+	"github.com/conduitio-labs/conduit-connector-databricks/mock"
+	"github.com/golang/mock/gomock"
 	"github.com/matryer/is"
 )
 

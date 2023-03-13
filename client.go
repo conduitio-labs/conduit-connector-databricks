@@ -18,9 +18,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	sdk "github.com/conduitio/conduit-connector-sdk"
 
-	_ "github.com/databricks/databricks-sql-go"
+	sdk "github.com/conduitio/conduit-connector-sdk"
+	_ "github.com/databricks/databricks-sql-go" // blank import because it's a driver
 )
 
 type sqlClient struct {
@@ -31,7 +31,7 @@ func newClient() *sqlClient {
 	return &sqlClient{}
 }
 
-func (c sqlClient) Open(ctx context.Context, dsn string) error {
+func (c *sqlClient) Open(ctx context.Context, dsn string) error {
 	sdk.Logger(ctx).Debug().Msg("opening sql client")
 
 	db, err := sql.Open("databricks", dsn)
@@ -49,7 +49,7 @@ func (c sqlClient) Open(ctx context.Context, dsn string) error {
 	return nil
 }
 
-func (c sqlClient) Close() error {
+func (c *sqlClient) Close() error {
 	if c.db != nil {
 		return c.db.Close()
 	}
