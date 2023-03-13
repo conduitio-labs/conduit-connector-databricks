@@ -12,23 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build tools
+
 package databricks
 
 import (
-	sdk "github.com/conduitio/conduit-connector-sdk"
+	_ "github.com/conduitio/conduit-connector-sdk/cmd/paramgen"
+	_ "github.com/golang/mock/mockgen"
 )
-
-// version is set during the build process with ldflags (see Makefile).
-// Default version matches default from runtime/debug.
-var version = "(devel)"
-
-// Specification returns the connector's specification.
-func Specification() sdk.Specification {
-	return sdk.Specification{
-		Name:        "databricks",
-		Summary:     "A Databricks connector.",
-		Description: "A Databricks connector.",
-		Version:     version,
-		Author:      "Meroxa, Inc.",
-	}
-}
