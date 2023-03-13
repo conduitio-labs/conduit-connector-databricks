@@ -18,6 +18,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	sdk "github.com/conduitio/conduit-connector-sdk"
 
 	_ "github.com/databricks/databricks-sql-go"
 )
@@ -31,16 +32,20 @@ func newClient() *sqlClient {
 }
 
 func (c sqlClient) Open(ctx context.Context, dsn string) error {
-	db, err := sql.Open("databricks", dsn)
+	sdk.Logger(ctx).Debug().Msg("opening sql client")
 
+	db, err := sql.Open("databricks", dsn)
 	if err != nil {
 		return fmt.Errorf("cannot open database: %w", err)
 	}
+
+	sdk.Logger(ctx).Debug().Msg("pinging database")
 	if err = db.PingContext(ctx); err != nil {
 		return fmt.Errorf("failed to ping database: %w", err)
 	}
 	c.db = db
 
+	sdk.Logger(ctx).Debug().Msg("sql client opened")
 	return nil
 }
 
