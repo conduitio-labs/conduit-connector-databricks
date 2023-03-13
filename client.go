@@ -18,11 +18,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	dbsql "github.com/databricks/databricks-sql-go"
 	"time"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
-	_ "github.com/databricks/databricks-sql-go" // blank import because it's a driver
+	dbsql "github.com/databricks/databricks-sql-go"
 	"github.com/rs/zerolog"
 )
 

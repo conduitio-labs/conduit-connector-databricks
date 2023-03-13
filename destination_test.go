@@ -16,6 +16,7 @@ package databricks_test
 
 import (
 	"context"
+	sdk "github.com/conduitio/conduit-connector-sdk"
 	"testing"
 
 	databricks "github.com/conduitio-labs/conduit-connector-databricks"
@@ -30,10 +31,14 @@ func TestConfigure(t *testing.T) {
 	client := mock.NewClient(gomock.NewController(t))
 
 	underTest := databricks.NewDestinationWithClient(client)
-	err := underTest.Configure(ctx, map[string]string{"dsn": "test"})
+	cfgMap := map[string]string{"token": "test"}
+	var cfg databricks.Config
+	err := sdk.Util.ParseConfig(cfgMap, &cfg)
+	is.NoErr(err)
+	err = underTest.Configure(ctx, cfgMap)
 	is.NoErr(err)
 
-	client.EXPECT().Open(gomock.Any(), "test")
+	client.EXPECT().Open(gomock.Any(), cfg)
 	err = underTest.Open(ctx)
 	is.NoErr(err)
 }

@@ -20,6 +20,7 @@ package databricks
 import (
 	"context"
 	"fmt"
+
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
