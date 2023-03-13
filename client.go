@@ -26,6 +26,8 @@ import (
 )
 
 func init() {
+	// Databricks' driver uses the UNIX time in some cases
+	// which is not compatible with what Conduit expects
 	zerolog.TimeFieldFormat = time.RFC3339
 }
 
