@@ -21,7 +21,12 @@ import (
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	_ "github.com/databricks/databricks-sql-go" // blank import because it's a driver
+	dblogger "github.com/databricks/databricks-sql-go/logger"
 )
+
+func init() {
+	dblogger.SetLogLevel("disabled")
+}
 
 type sqlClient struct {
 	db *sql.DB
