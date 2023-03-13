@@ -18,6 +18,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	dbsql "github.com/databricks/databricks-sql-go"
 	"time"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
@@ -39,13 +40,23 @@ func newClient() *sqlClient {
 	return &sqlClient{}
 }
 
-func (c *sqlClient) Open(ctx context.Context, dsn string) error {
+func (c *sqlClient) Open(ctx context.Context, config Config) error {
 	sdk.Logger(ctx).Debug().Msg("opening sql client")
 
-	db, err := sql.Open("databricks", dsn)
+	connector, err := dbsql.NewConnector(
+		dbsql.WithAccessToken(config.Token),
+		dbsql.WithServerHostname(config.Host),
+		dbsql.WithPort(config.Port),
+		dbsql.WithHTTPPath(config.HTTPath),
+		dbsql.WithSessionParams(map[string]string{
+			"ansi_mode": "true",
+		}),
+	)
 	if err != nil {
-		return fmt.Errorf("cannot open database: %w", err)
+		return fmt.Errorf("invalid configuration: %w", err)
 	}
+
+	db := sql.OpenDB(connector)
 
 	sdk.Logger(ctx).Debug().Msg("pinging database")
 	if err = db.PingContext(ctx); err != nil {

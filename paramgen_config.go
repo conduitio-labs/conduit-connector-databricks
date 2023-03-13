@@ -9,9 +9,33 @@ import (
 
 func (Config) Parameters() map[string]sdk.Parameter {
 	return map[string]sdk.Parameter{
-		"dsn": {
+		"host": {
 			Default:     "",
-			Description: "dsn is a data source name connection string https://docs.databricks.com/dev-tools/go-sql-driver.html#connect-with-a-dsn-connection-string",
+			Description: "",
+			Type:        sdk.ParameterTypeString,
+			Validations: []sdk.Validation{
+				sdk.ValidationRequired{},
+			},
+		},
+		"httpPath": {
+			Default:     "",
+			Description: "",
+			Type:        sdk.ParameterTypeString,
+			Validations: []sdk.Validation{
+				sdk.ValidationRequired{},
+			},
+		},
+		"int": {
+			Default:     "",
+			Description: "",
+			Type:        sdk.ParameterTypeInt,
+			Validations: []sdk.Validation{
+				sdk.ValidationRequired{},
+			},
+		},
+		"token": {
+			Default:     "",
+			Description: "DSN is a data source name connection string https://docs.databricks.com/dev-tools/go-sql-driver.html#connect-with-a-dsn-connection-string",
 			Type:        sdk.ParameterTypeString,
 			Validations: []sdk.Validation{
 				sdk.ValidationRequired{},

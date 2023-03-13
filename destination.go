@@ -20,18 +20,20 @@ package databricks
 import (
 	"context"
 	"fmt"
-
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
 type Config struct {
 	// DSN is a data source name connection string
 	// https://docs.databricks.com/dev-tools/go-sql-driver.html#connect-with-a-dsn-connection-string
-	DSN string `json:"dsn" validate:"required"`
+	Token   string `json:"token" validate:"required"`
+	Host    string `json:"host" validate:"required"`
+	Port    int    `json:"int" validate:"required"`
+	HTTPath string `json:"httpPath" validate:"required"`
 }
 
 type Client interface {
-	Open(ctx context.Context, dsn string) error
+	Open(context.Context, Config) error
 	Close() error
 }
 
@@ -68,7 +70,7 @@ func (d *Destination) Configure(ctx context.Context, cfg map[string]string) erro
 func (d *Destination) Open(ctx context.Context) error {
 	sdk.Logger(ctx).Info().Msg("opening the connector")
 
-	if err := d.client.Open(ctx, d.config.DSN); err != nil {
+	if err := d.client.Open(ctx, d.config); err != nil {
 		return fmt.Errorf("failed opening client: %w", err)
 	}
 

@@ -8,6 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	databricks "github.com/conduitio-labs/conduit-connector-databricks"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -49,7 +50,7 @@ func (mr *ClientMockRecorder) Close() *gomock.Call {
 }
 
 // Open mocks base method.
-func (m *Client) Open(arg0 context.Context, arg1 string) error {
+func (m *Client) Open(arg0 context.Context, arg1 databricks.Config) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Open", arg0, arg1)
 	ret0, _ := ret[0].(error)
