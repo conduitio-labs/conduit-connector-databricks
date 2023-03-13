@@ -16,10 +16,27 @@ package databricks_test
 
 import (
 	"context"
+	"github.com/conduitio-labs/conduit-connector-databricks/mock"
+	"github.com/golang/mock/gomock"
 	"testing"
 
 	databricks "github.com/conduitio-labs/conduit-connector-databricks"
+	"github.com/matryer/is"
 )
+
+func TestConfigure(t *testing.T) {
+	is := is.New(t)
+	ctx := context.Background()
+	client := mock.NewClient(gomock.NewController(t))
+
+	underTest := databricks.NewDestinationWithClient(client)
+	err := underTest.Configure(ctx, map[string]string{"dsn": "test"})
+	is.NoErr(err)
+
+	client.EXPECT().Open(gomock.Any(), "test")
+	err = underTest.Open(ctx)
+	is.NoErr(err)
+}
 
 func TestTeardown_NoOpen(t *testing.T) {
 	con := databricks.NewDestination()

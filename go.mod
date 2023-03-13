@@ -5,6 +5,8 @@ go 1.20
 require (
 	github.com/conduitio/conduit-connector-sdk v0.5.1
 	github.com/databricks/databricks-sql-go v1.1.0
+	github.com/golang/mock v1.6.0
+	github.com/matryer/is v1.4.0
 )
 
 require (
@@ -35,7 +37,6 @@ require (
 	github.com/klauspost/asmfmt v1.3.2 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
-	github.com/matryer/is v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8 // indirect

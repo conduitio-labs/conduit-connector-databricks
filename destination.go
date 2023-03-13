@@ -15,6 +15,7 @@
 package databricks
 
 //go:generate paramgen -output=paramgen_config.go Config
+//go:generate mockgen -destination=mock/client.go -package=mock -mock_names=Client=Client . Client
 
 import (
 	"context"
@@ -39,11 +40,6 @@ type Destination struct {
 
 	config Config
 	client Client
-}
-
-type DestinationConfig struct {
-	// Config includes parameters that are the same in the source and destination.
-	Config
 }
 
 func NewDestination() sdk.Destination {
