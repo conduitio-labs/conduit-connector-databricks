@@ -28,7 +28,7 @@ type Config struct {
 	// https://docs.databricks.com/dev-tools/go-sql-driver.html#connect-with-a-dsn-connection-string
 	Token   string `json:"token" validate:"required"`
 	Host    string `json:"host" validate:"required"`
-	Port    int    `json:"int" validate:"required"`
+	Port    int    `json:"port" validate:"required"`
 	HTTPath string `json:"httpPath" validate:"required"`
 }
 

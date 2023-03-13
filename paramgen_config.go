@@ -25,7 +25,7 @@ func (Config) Parameters() map[string]sdk.Parameter {
 				sdk.ValidationRequired{},
 			},
 		},
-		"int": {
+		"port": {
 			Default:     "",
 			Description: "",
 			Type:        sdk.ParameterTypeInt,
