@@ -29,9 +29,7 @@ func (Config) Parameters() map[string]sdk.Parameter {
 			Default:     "443",
 			Description: "Databricks port",
 			Type:        sdk.ParameterTypeInt,
-			Validations: []sdk.Validation{
-				sdk.ValidationRequired{},
-			},
+			Validations: []sdk.Validation{},
 		},
 		"token": {
 			Default:     "",
