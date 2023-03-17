@@ -11,7 +11,7 @@ func (Config) Parameters() map[string]sdk.Parameter {
 	return map[string]sdk.Parameter{
 		"host": {
 			Default:     "",
-			Description: "",
+			Description: "Databricks server hostname",
 			Type:        sdk.ParameterTypeString,
 			Validations: []sdk.Validation{
 				sdk.ValidationRequired{},
@@ -19,15 +19,15 @@ func (Config) Parameters() map[string]sdk.Parameter {
 		},
 		"httpPath": {
 			Default:     "",
-			Description: "",
+			Description: "Databricks compute resources URL",
 			Type:        sdk.ParameterTypeString,
 			Validations: []sdk.Validation{
 				sdk.ValidationRequired{},
 			},
 		},
 		"port": {
-			Default:     "",
-			Description: "",
+			Default:     "443",
+			Description: "Databricks port",
 			Type:        sdk.ParameterTypeInt,
 			Validations: []sdk.Validation{
 				sdk.ValidationRequired{},
@@ -35,7 +35,7 @@ func (Config) Parameters() map[string]sdk.Parameter {
 		},
 		"token": {
 			Default:     "",
-			Description: "DSN is a data source name connection string https://docs.databricks.com/dev-tools/go-sql-driver.html#connect-with-a-dsn-connection-string",
+			Description: "Personal access token.",
 			Type:        sdk.ParameterTypeString,
 			Validations: []sdk.Validation{
 				sdk.ValidationRequired{},
