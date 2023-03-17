@@ -30,7 +30,7 @@ type Config struct {
 	// Databricks server hostname
 	Host string `json:"host" validate:"required"`
 	// Databricks port
-	Port int `json:"port" default:"443"`
+	Port int `json:"porttttt" default:"443"`
 	// Databricks compute resources URL
 	HTTPath string `json:"httpPath" validate:"required"`
 }
