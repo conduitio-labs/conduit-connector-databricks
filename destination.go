@@ -25,11 +25,13 @@ import (
 )
 
 type Config struct {
-	// DSN is a data source name connection string
-	// https://docs.databricks.com/dev-tools/go-sql-driver.html#connect-with-a-dsn-connection-string
-	Token   string `json:"token" validate:"required"`
-	Host    string `json:"host" validate:"required"`
-	Port    int    `json:"port" validate:"required"`
+	// Personal access token.
+	Token string `json:"token" validate:"required"`
+	// Databricks server hostname
+	Host string `json:"host" validate:"required"`
+	// Databricks port
+	Port int `json:"port" validate:"required" default:"443"`
+	// Databricks compute resources URL
 	HTTPath string `json:"httpPath" validate:"required"`
 }
 
@@ -85,5 +87,8 @@ func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, err
 
 func (d *Destination) Teardown(ctx context.Context) error {
 	sdk.Logger(ctx).Info().Msg("tearing down the connector")
-	return d.client.Close()
+	if d.client != nil {
+		return d.client.Close()
+	}
+	return nil
 }

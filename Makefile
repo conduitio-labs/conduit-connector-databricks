@@ -1,4 +1,4 @@
-.PHONY: build test test-integration generate install-paramgen
+.PHONY: build test generate download install-tools
 
 VERSION=$(shell git describe --tags --dirty --always)
 

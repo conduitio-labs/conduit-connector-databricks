@@ -31,6 +31,8 @@ func init() {
 	zerolog.TimeFieldFormat = time.RFC3339
 }
 
+const ansiMode = "ansi_mode"
+
 type sqlClient struct {
 	db *sql.DB
 }
@@ -48,7 +50,7 @@ func (c *sqlClient) Open(ctx context.Context, config Config) error {
 		dbsql.WithPort(config.Port),
 		dbsql.WithHTTPPath(config.HTTPath),
 		dbsql.WithSessionParams(map[string]string{
-			"ansi_mode": "true",
+			ansiMode: "true",
 		}),
 	)
 	if err != nil {
