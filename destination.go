@@ -33,6 +33,8 @@ type Config struct {
 	Port int `json:"port" default:"443"`
 	// Databricks compute resources URL
 	HTTPath string `json:"httpPath" validate:"required"`
+	//Table name
+	TableName string `json:"tableName" validate:"required"`
 }
 
 type Client interface {
@@ -67,6 +69,9 @@ func (d *Destination) Configure(ctx context.Context, cfg map[string]string) erro
 	if err != nil {
 		return fmt.Errorf("invalid config: %w", err)
 	}
+
+	d.client = newClient()
+
 	return nil
 }
 
