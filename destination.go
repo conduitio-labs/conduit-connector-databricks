@@ -19,6 +19,7 @@ package databricks
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
@@ -87,6 +88,46 @@ func (d *Destination) Open(ctx context.Context) error {
 
 func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, error) {
 	sdk.Logger(ctx).Trace().Msgf("writing %v records", len(records))
+
+	for i, record := range records {
+
+		payload := make(sdk.StructuredData)
+		if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
+			return i + 1, fmt.Errorf("unmarshal payload: %w", err)
+		}
+		//determine the operation
+		//temporary functions in place until functionality implemented
+		if err := sdk.Util.Destination.Route(ctx, record,
+			func(ctx context.Context, record sdk.Record) error {
+				sdk.Logger(ctx).Trace().Msgf("insert")
+				return nil
+			},
+			func(ctx context.Context, record sdk.Record) error {
+				sdk.Logger(ctx).Trace().Msgf("update")
+				return nil
+			},
+			func(ctx context.Context, record sdk.Record) error {
+				sdk.Logger(ctx).Trace().Msgf("delete")
+				return nil
+			},
+			func(ctx context.Context, record sdk.Record) error {
+				sdk.Logger(ctx).Trace().Msgf("insert")
+				return nil
+			},
+		); err != nil {
+			return i + 1, fmt.Errorf("route %s: %w", record.Operation, err)
+		}
+
+		//write the data to databricks
+
+		/*payload, ok := record.Payload.After.Bytes().(map[string]interface{})
+		if !ok {
+			return payload, nil
+		}
+		*/
+
+	}
+
 	return 0, nil
 }
 
