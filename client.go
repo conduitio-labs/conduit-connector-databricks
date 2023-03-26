@@ -34,7 +34,8 @@ func init() {
 const ansiMode = "ansi_mode"
 
 type sqlClient struct {
-	db *sql.DB
+	db         *sql.DB
+	FieldCount int
 }
 
 func newClient() *sqlClient {
@@ -64,6 +65,10 @@ func (c *sqlClient) Open(ctx context.Context, config Config) error {
 		return fmt.Errorf("failed to ping database: %w", err)
 	}
 	c.db = db
+	c.FieldCount, err = c.GetFieldCount(config)
+	if err != nil {
+		return fmt.Errorf("failed to get field count: %w", err)
+	}
 
 	sdk.Logger(ctx).Debug().Msg("sql client opened")
 	return nil
@@ -75,4 +80,63 @@ func (c *sqlClient) Close() error {
 	}
 
 	return nil
+}
+
+func (c *sqlClient) HandleRecord(ctx context.Context, record sdk.Record) error {
+
+	//determine the operation
+	err := sdk.Util.Destination.Route(
+		ctx,
+		record,
+		c.Insert,
+		c.Update,
+		c.Delete,
+		c.Snapshot,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to route operation: %w", err)
+	}
+
+	return nil
+}
+
+func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
+	//payload := make(sdk.StructuredData)
+	return nil
+}
+
+func (c *sqlClient) Update(ctx context.Context, record sdk.Record) error {
+
+	return nil
+}
+
+func (c *sqlClient) Delete(ctx context.Context, record sdk.Record) error {
+
+	return nil
+}
+
+func (c *sqlClient) Snapshot(ctx context.Context, record sdk.Record) error {
+
+	return nil
+}
+
+func (c *sqlClient) PrepareSQL() (string, error) {
+
+	return "", nil
+}
+
+func (c *sqlClient) GetFieldCount(config Config) (int, error) {
+
+	columns, err := c.db.Query("SHOW COLUMNS FROM " + config.TableName)
+	if err != nil {
+		return 0, fmt.Errorf("failed to execute query: %w", err)
+	}
+
+	//Iterate through row object to count number of columns
+	count := 0
+	for columns.Next() {
+		count++
+	}
+
+	return count, nil
 }

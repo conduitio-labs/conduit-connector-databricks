@@ -41,6 +41,7 @@ type Config struct {
 type Client interface {
 	Open(context.Context, Config) error
 	Close() error
+	HandleRecord(ctx context.Context, record sdk.Record) error
 }
 
 type Destination struct {
@@ -73,6 +74,10 @@ func (d *Destination) Configure(ctx context.Context, cfg map[string]string) erro
 
 	d.client = newClient()
 
+	if err != nil {
+		return fmt.Errorf("invalid config: %w", err)
+	}
+
 	return nil
 }
 
@@ -93,28 +98,15 @@ func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, err
 
 		payload := make(sdk.StructuredData)
 		if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
-			return i + 1, fmt.Errorf("unmarshal payload: %w", err)
+			return i, fmt.Errorf("unmarshal payload: %w", err)
 		}
-		//determine the operation
-		//temporary functions in place until functionality implemented
-		if err := sdk.Util.Destination.Route(ctx, record,
-			func(ctx context.Context, record sdk.Record) error {
-				sdk.Logger(ctx).Trace().Msgf("insert")
-				return nil
-			},
-			func(ctx context.Context, record sdk.Record) error {
-				sdk.Logger(ctx).Trace().Msgf("update")
-				return nil
-			},
-			func(ctx context.Context, record sdk.Record) error {
-				sdk.Logger(ctx).Trace().Msgf("delete")
-				return nil
-			},
-			func(ctx context.Context, record sdk.Record) error {
-				sdk.Logger(ctx).Trace().Msgf("insert")
-				return nil
-			},
-		); err != nil {
+
+		err := d.client.HandleRecord(ctx, record)
+		if err != nil {
+			return i, fmt.Errorf("unable to handle record: %w", err)
+		}
+
+		if err != nil {
 			return i + 1, fmt.Errorf("route %s: %w", record.Operation, err)
 		}
 
