@@ -17,7 +17,9 @@ package databricks
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
@@ -34,8 +36,8 @@ func init() {
 const ansiMode = "ansi_mode"
 
 type sqlClient struct {
-	db         *sql.DB
-	FieldCount int
+	db        *sql.DB
+	TableName string
 }
 
 func newClient() *sqlClient {
@@ -65,7 +67,7 @@ func (c *sqlClient) Open(ctx context.Context, config Config) error {
 		return fmt.Errorf("failed to ping database: %w", err)
 	}
 	c.db = db
-	c.FieldCount, err = c.GetFieldCount(config)
+	c.TableName = config.TableName
 	if err != nil {
 		return fmt.Errorf("failed to get field count: %w", err)
 	}
@@ -84,7 +86,7 @@ func (c *sqlClient) Close() error {
 
 func (c *sqlClient) HandleRecord(ctx context.Context, record sdk.Record) error {
 
-	//determine the operation
+	//call the appropriate function using route
 	err := sdk.Util.Destination.Route(
 		ctx,
 		record,
@@ -101,7 +103,27 @@ func (c *sqlClient) HandleRecord(ctx context.Context, record sdk.Record) error {
 }
 
 func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
-	//payload := make(sdk.StructuredData)
+	sdk.Logger(ctx).Info().Msg("inserting record")
+
+	//prepare SQL statement
+	sql, vals, err := c.PrepareSQL(ctx, record)
+	if err != nil {
+		return err
+	}
+	sdk.Logger(ctx).Info().Msgf("\n::::::::::%v\n", sql)
+
+	stmt, err := c.db.Prepare(sql)
+	if err != nil {
+		return fmt.Errorf("failed to prepare db sql: %w", err)
+	}
+	defer stmt.Close()
+
+	//_, err = stmt.Exec(vals...)
+	_, err = stmt.Exec("DEFAULT", "DEFAULT", "DEFAULT", "DEFAULT", "DEFAULT", "DEFAULT", "DEFAULT", "DEFAULT", "DEFAULT", "DEFAULT")
+	if err != nil {
+		return fmt.Errorf("failed to execute db sql: %w %v", err, vals)
+	}
+
 	return nil
 }
 
@@ -120,9 +142,34 @@ func (c *sqlClient) Snapshot(ctx context.Context, record sdk.Record) error {
 	return nil
 }
 
-func (c *sqlClient) PrepareSQL() (string, error) {
+func (c *sqlClient) PrepareSQL(ctx context.Context, record sdk.Record) (string, []interface{}, error) {
 
-	return "", nil
+	payload := make(sdk.StructuredData)
+	if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
+		return "", nil, fmt.Errorf("error unmarshalling: %w", err)
+	}
+
+	sdk.Logger(ctx).Info().Msgf("\n||||||||||||%v\n", payload)
+
+	var columns []string
+	var placeholders []string
+	var vals []interface{}
+
+	//iterate through payload and append values to new slice
+	for col, val := range payload {
+		columns = append(columns, col)
+		placeholders = append(placeholders, "?")
+		vals = append(vals, val)
+	}
+
+	//construction of SQL statement
+	return fmt.Sprintf(
+			"INSERT INTO %s (%s) VALUES (%s)",
+			c.TableName,
+			strings.Join(columns, ", "),
+			strings.Join(placeholders, ", ")),
+		vals, nil
+
 }
 
 func (c *sqlClient) GetFieldCount(config Config) (int, error) {

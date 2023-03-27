@@ -19,7 +19,6 @@ package databricks
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
@@ -96,28 +95,16 @@ func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, err
 
 	for i, record := range records {
 
-		payload := make(sdk.StructuredData)
-		if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
-			return i, fmt.Errorf("unmarshal payload: %w", err)
-		}
-
 		err := d.client.HandleRecord(ctx, record)
 		if err != nil {
 			return i, fmt.Errorf("unable to handle record: %w", err)
 		}
-
-		if err != nil {
-			return i + 1, fmt.Errorf("route %s: %w", record.Operation, err)
-		}
-
 		//write the data to databricks
-
 		/*payload, ok := record.Payload.After.Bytes().(map[string]interface{})
 		if !ok {
 			return payload, nil
 		}
 		*/
-
 	}
 
 	return 0, nil
