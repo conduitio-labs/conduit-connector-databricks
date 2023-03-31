@@ -130,12 +130,7 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 	if err != nil {
 		return fmt.Errorf("failed to prepare db statement: %w", err)
 	}
-	defer func(stmt *sql.Stmt) {
-		err := stmt.Close()
-		if err != nil {
-
-		}
-	}(stmt)
+	defer stmt.Close()
 
 	_, err = stmt.Exec()
 	if err != nil {
