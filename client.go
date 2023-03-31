@@ -96,24 +96,6 @@ func (c *sqlClient) Close() error {
 	return nil
 }
 
-func (c *sqlClient) HandleRecord(ctx context.Context, record sdk.Record) error {
-
-	//call the appropriate function using route
-	err := sdk.Util.Destination.Route(
-		ctx,
-		record,
-		c.Insert,
-		c.Update,
-		c.Delete,
-		c.Snapshot,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to route operation: %w", err)
-	}
-
-	return nil
-}
-
 func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 	sdk.Logger(ctx).Info().Msg("inserting record")
 
