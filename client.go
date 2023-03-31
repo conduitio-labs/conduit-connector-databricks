@@ -37,9 +37,9 @@ func init() {
 const ansiMode = "ansi_mode"
 
 type sqlClient struct {
-	db             *sql.DB
-	TableName      string
-	AllColumnInfos []map[string]ColumnInfo
+	db          *sql.DB
+	tableName   string
+	columnTypes map[string]string
 }
 
 type ColumnInfo struct {
@@ -74,7 +74,7 @@ func (c *sqlClient) Open(ctx context.Context, config Config) error {
 		return fmt.Errorf("failed to ping database: %w", err)
 	}
 	c.db = db
-	c.TableName = config.TableName
+	c.tableName = config.TableName
 	if err != nil {
 		return fmt.Errorf("failed to get field count: %w", err)
 	}
@@ -99,26 +99,23 @@ func (c *sqlClient) Close() error {
 func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 	sdk.Logger(ctx).Info().Msg("inserting record")
 
-	var keys []string
+	var colNames []string
 	var values []interface{}
 	var types []string
 
-	var err error
-	c.AllColumnInfos, err = c.readPayload(c.AllColumnInfos, record)
-	if err != nil {
-		return err
+	payload := make(sdk.StructuredData)
+	if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
+		return fmt.Errorf("error unmarshalling: %w", err)
 	}
 
-	for _, col := range c.AllColumnInfos {
-		for key, info := range col {
-			keys = append(keys, key)
-			values = append(values, info.value)
-			types = append(types, info.dataType)
-		}
+	for colName, colType := range c.columnTypes {
+		colNames = append(colNames, colName)
+		values = append(values, payload[colName])
+		types = append(types, colType)
 	}
 
 	//prepare SQL statement
-	statement, err := c.PrepareSQL(ctx, keys, values)
+	statement, err := c.PrepareSQL(ctx, colNames, values)
 	if err != nil {
 		return err
 	}
@@ -168,60 +165,32 @@ func (c *sqlClient) getColumnInfo() error {
 
 	var ignoredValue sql.NullString
 
-	describeQuery := "DESCRIBE " + c.TableName
+	describeQuery := "DESCRIBE " + c.tableName
 
 	rows, err := c.db.Query(describeQuery)
 	if err != nil {
 		return fmt.Errorf("failed to execute describe query: %v", err)
 	}
-	defer func(rows *sql.Rows) {
-		err := rows.Close()
-		if err != nil {
-
-		}
-	}(rows)
+	defer rows.Close()
 
 	for rows.Next() {
-		newCol := map[string]ColumnInfo{}
 		var colName string
 		var colType string
 		err := rows.Scan(&colName, &colType, &ignoredValue)
 		if err != nil {
 			return fmt.Errorf("failed to next(): %v", err)
 		}
-		newCol[colName] = ColumnInfo{
-			dataType: colType,
-			value:    nil,
-		}
 
-		c.AllColumnInfos = append(c.AllColumnInfos, newCol)
+		c.columnTypes[colName] = colType
 	}
 
 	return nil
 }
 
-func (c *sqlClient) readPayload(AllColumns []map[string]ColumnInfo, record sdk.Record) ([]map[string]ColumnInfo, error) {
-	payload := make(sdk.StructuredData)
-	if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
-		return nil, fmt.Errorf("error unmarshalling: %w", err)
-	}
-
-	for _, columnInfoMap := range AllColumns {
-		for key, columnInfo := range columnInfoMap {
-			if value, ok := payload[key]; ok {
-				columnInfo.value = value
-				columnInfoMap[key] = columnInfo
-			}
-		}
-	}
-
-	return AllColumns, nil
-}
-
 func (c *sqlClient) PrepareSQL(ctx context.Context, keys []string, values []interface{}) (string, error) {
 
 	sqlString, _, err := squirrel.
-		Insert(c.TableName).
+		Insert(c.tableName).
 		Columns(keys...).
 		Values(values...).
 		ToSql()
@@ -229,7 +198,7 @@ func (c *sqlClient) PrepareSQL(ctx context.Context, keys []string, values []inte
 		return "", fmt.Errorf("error creating sqlString: %w", err)
 	}
 
-	sdk.Logger(ctx).Info().Msgf(" \n 0000000%v\n", sqlString)
+	sdk.Logger(ctx).Trace().Msgf("sql string\n%v\n", sqlString)
 
 	return sqlString, nil
 }
