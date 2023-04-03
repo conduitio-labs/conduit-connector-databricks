@@ -200,7 +200,7 @@ func (c *sqlClient) BuildSQL(sql string, values []interface{}, types []string) (
 
 	formattedValues := make([]string, len(values))
 	for i, value := range values {
-		formattedValues[i] = fmt.Sprintf("try_cast(\"%v\" as %s)", value, types[i])
+		formattedValues[i] = fmt.Sprintf("cast(\"%v\" as %s)", value, types[i])
 	}
 
 	placeholders := strings.Count(sql, "?")
