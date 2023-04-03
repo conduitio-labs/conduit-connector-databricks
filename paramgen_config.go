@@ -31,17 +31,17 @@ func (Config) Parameters() map[string]sdk.Parameter {
 			Type:        sdk.ParameterTypeInt,
 			Validations: []sdk.Validation{},
 		},
-		"token": {
+		"tableName": {
 			Default:     "",
-			Description: "Personal access token.",
+			Description: "Table name",
 			Type:        sdk.ParameterTypeString,
 			Validations: []sdk.Validation{
 				sdk.ValidationRequired{},
 			},
 		},
-		"tableName": {
+		"token": {
 			Default:     "",
-			Description: "Databricks Table Name",
+			Description: "Personal access token.",
 			Type:        sdk.ParameterTypeString,
 			Validations: []sdk.Validation{
 				sdk.ValidationRequired{},

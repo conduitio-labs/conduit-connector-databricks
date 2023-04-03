@@ -19,10 +19,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/Masterminds/squirrel"
 	"strings"
 	"time"
 
+	"github.com/Masterminds/squirrel"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	mysql "github.com/databricks/databricks-sql-go"
 	"github.com/rs/zerolog"
