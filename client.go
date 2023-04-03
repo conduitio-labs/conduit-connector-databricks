@@ -18,6 +18,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -97,7 +98,7 @@ func (c *sqlClient) Close() error {
 }
 
 func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
-	sdk.Logger(ctx).Info().Msg("inserting record")
+	sdk.Logger(ctx).Trace().Msg("inserting record")
 
 	var colNames []string
 	var values []interface{}
@@ -141,13 +142,11 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 }
 
 func (c *sqlClient) Update(context.Context, sdk.Record) error {
-
-	return nil
+	return errors.New("update not implemented")
 }
 
 func (c *sqlClient) Delete(ctx context.Context, record sdk.Record) error {
-
-	return nil
+	return errors.New("delete not implemented")
 }
 
 func (c *sqlClient) Snapshot(ctx context.Context, record sdk.Record) error {
