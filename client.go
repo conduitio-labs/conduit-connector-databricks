@@ -149,11 +149,6 @@ func (c *sqlClient) Delete(ctx context.Context, record sdk.Record) error {
 	return errors.New("delete not implemented")
 }
 
-func (c *sqlClient) Snapshot(ctx context.Context, record sdk.Record) error {
-
-	return nil
-}
-
 // getColumnInfo gets information on all the column names and types and stores them
 func (c *sqlClient) getColumnInfo() error {
 
