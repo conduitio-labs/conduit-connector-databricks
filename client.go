@@ -25,7 +25,7 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	sdk "github.com/conduitio/conduit-connector-sdk"
-	mysql "github.com/databricks/databricks-sql-go"
+	"github.com/databricks/databricks-sql-go"
 	"github.com/rs/zerolog"
 )
 
@@ -49,18 +49,20 @@ type ColumnInfo struct {
 }
 
 func newClient() *sqlClient {
-	return &sqlClient{}
+	return &sqlClient{
+		columnTypes: make(map[string]string),
+	}
 }
 
 func (c *sqlClient) Open(ctx context.Context, config Config) error {
 	sdk.Logger(ctx).Debug().Msg("opening sql client")
 
-	connector, err := mysql.NewConnector(
-		mysql.WithAccessToken(config.Token),
-		mysql.WithServerHostname(config.Host),
-		mysql.WithPort(config.Port),
-		mysql.WithHTTPPath(config.HTTPath),
-		mysql.WithSessionParams(map[string]string{
+	connector, err := dbsql.NewConnector(
+		dbsql.WithAccessToken(config.Token),
+		dbsql.WithServerHostname(config.Host),
+		dbsql.WithPort(config.Port),
+		dbsql.WithHTTPPath(config.HTTPath),
+		dbsql.WithSessionParams(map[string]string{
 			ansiMode: "true",
 		}),
 	)
@@ -133,9 +135,16 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec()
+	res, err := stmt.ExecContext(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to execute db statement: %w ", err)
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get number of affected rows: %w ", err)
+	}
+	if affected != 1 {
+		return fmt.Errorf("%v rows inserted", affected)
 	}
 
 	return nil
@@ -145,7 +154,7 @@ func (c *sqlClient) Update(context.Context, sdk.Record) error {
 	return errors.New("update not implemented")
 }
 
-func (c *sqlClient) Delete(ctx context.Context, record sdk.Record) error {
+func (c *sqlClient) Delete(context.Context, sdk.Record) error {
 	return errors.New("delete not implemented")
 }
 
