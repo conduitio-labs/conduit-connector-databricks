@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	databricks "github.com/conduitio-labs/conduit-connector-databricks"
+	sdk "github.com/conduitio/conduit-connector-sdk"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -49,6 +50,34 @@ func (mr *ClientMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*Client)(nil).Close))
 }
 
+// Delete mocks base method.
+func (m *Client) Delete(arg0 context.Context, arg1 sdk.Record) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *ClientMockRecorder) Delete(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*Client)(nil).Delete), arg0, arg1)
+}
+
+// Insert mocks base method.
+func (m *Client) Insert(arg0 context.Context, arg1 sdk.Record) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Insert", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Insert indicates an expected call of Insert.
+func (mr *ClientMockRecorder) Insert(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*Client)(nil).Insert), arg0, arg1)
+}
+
 // Open mocks base method.
 func (m *Client) Open(arg0 context.Context, arg1 databricks.Config) error {
 	m.ctrl.T.Helper()
@@ -61,4 +90,18 @@ func (m *Client) Open(arg0 context.Context, arg1 databricks.Config) error {
 func (mr *ClientMockRecorder) Open(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Open", reflect.TypeOf((*Client)(nil).Open), arg0, arg1)
+}
+
+// Update mocks base method.
+func (m *Client) Update(arg0 context.Context, arg1 sdk.Record) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *ClientMockRecorder) Update(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*Client)(nil).Update), arg0, arg1)
 }

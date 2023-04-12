@@ -40,7 +40,10 @@ type Config struct {
 type Client interface {
 	Open(context.Context, Config) error
 	Close() error
-	HandleRecord(ctx context.Context, record sdk.Record) error
+
+	Insert(ctx context.Context, record sdk.Record) error
+	Update(ctx context.Context, record sdk.Record) error
+	Delete(ctx context.Context, record sdk.Record) error
 }
 
 type Destination struct {
@@ -94,20 +97,20 @@ func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, err
 	sdk.Logger(ctx).Trace().Msgf("writing %v records", len(records))
 
 	for i, record := range records {
-
-		err := d.client.HandleRecord(ctx, record)
+		err := sdk.Util.Destination.Route(
+			ctx,
+			record,
+			d.client.Insert,
+			d.client.Update,
+			d.client.Delete,
+			d.client.Insert,
+		)
 		if err != nil {
 			return i, fmt.Errorf("unable to handle record: %w", err)
 		}
-		//write the data to databricks
-		/*payload, ok := record.Payload.After.Bytes().(map[string]interface{})
-		if !ok {
-			return payload, nil
-		}
-		*/
 	}
 
-	return 0, nil
+	return len(records), nil
 }
 
 func (d *Destination) Teardown(ctx context.Context) error {
