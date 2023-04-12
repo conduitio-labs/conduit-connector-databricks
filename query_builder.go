@@ -40,10 +40,17 @@ func (b *ansiQueryBuilder) buildInsert(
 	return b.fillPlaceholders(sqlString, values, types)
 }
 
-func (b *ansiQueryBuilder) buildWithPlaceholders(table string, keys []string, values []interface{}) (string, error) {
+func (b *ansiQueryBuilder) buildWithPlaceholders(table string, columns []string, values []interface{}) (string, error) {
+	if len(columns) != len(values) {
+		return "", fmt.Errorf(
+			"expected equal number of columns and values, but got %v column(s) and %v value(s)",
+			len(columns),
+			len(values),
+		)
+	}
 	sqlString, _, err := squirrel.
 		Insert(table).
-		Columns(keys...).
+		Columns(columns...).
 		Values(values...).
 		ToSql()
 	if err != nil {
@@ -55,11 +62,17 @@ func (b *ansiQueryBuilder) buildWithPlaceholders(table string, keys []string, va
 
 func (b *ansiQueryBuilder) fillPlaceholders(sql string, values []interface{}, types []string) (string, error) {
 	if len(values) != len(types) {
-		return "", fmt.Errorf("values and types slices should have the same length")
+		return "", fmt.Errorf(
+			"expected equal number of columns and values, but got %v value(s) and %v type(s)",
+			len(values),
+			len(types),
+		)
 	}
 
 	formattedValues := make([]string, len(values))
 	for i, value := range values {
+		// todo make using cast an exception
+		// e.g. when we get an int, and the column type is int, no need to cast
 		formattedValues[i] = fmt.Sprintf("cast(\"%v\" as %s)", value, types[i])
 	}
 
