@@ -20,10 +20,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/Masterminds/squirrel"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	"github.com/databricks/databricks-sql-go"
 	"github.com/rs/zerolog"
@@ -37,20 +35,23 @@ func init() {
 
 const ansiMode = "ansi_mode"
 
-type sqlClient struct {
-	db          *sql.DB
-	tableName   string
-	columnTypes map[string]string
+type queryBuilder interface {
+	buildInsert(table string, columns []string, values []interface{}, types []string) (string, error)
+
+	describeTable(table string) string
 }
 
-type ColumnInfo struct {
-	dataType string
-	value    interface{}
+type sqlClient struct {
+	db           *sql.DB
+	tableName    string
+	columnTypes  map[string]string
+	queryBuilder queryBuilder
 }
 
 func newClient() *sqlClient {
 	return &sqlClient{
-		columnTypes: make(map[string]string),
+		columnTypes:  make(map[string]string),
+		queryBuilder: &ansiQueryBuilder{},
 	}
 }
 
@@ -78,9 +79,6 @@ func (c *sqlClient) Open(ctx context.Context, config Config) error {
 	}
 	c.db = db
 	c.tableName = config.TableName
-	if err != nil {
-		return fmt.Errorf("failed to get field count: %w", err)
-	}
 
 	err = c.getColumnInfo()
 	if err != nil {
@@ -117,19 +115,13 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 		types = append(types, colType)
 	}
 
-	//prepare SQL statement
-	statement, err := c.PrepareSQL(ctx, colNames, values)
+	sqlString, err := c.queryBuilder.buildInsert(c.tableName, colNames, values, types)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed building query: %w", err)
 	}
+	sdk.Logger(ctx).Trace().Msgf("sql string\n%v\n", sqlString)
 
-	//build SQL statement
-	statement, err = c.BuildSQL(statement, values, types)
-	if err != nil {
-		return err
-	}
-
-	stmt, err := c.db.Prepare(statement)
+	stmt, err := c.db.Prepare(sqlString)
 	if err != nil {
 		return fmt.Errorf("failed to prepare db statement: %w", err)
 	}
@@ -160,12 +152,9 @@ func (c *sqlClient) Delete(context.Context, sdk.Record) error {
 
 // getColumnInfo gets information on all the column names and types and stores them
 func (c *sqlClient) getColumnInfo() error {
-
 	var ignoredValue sql.NullString
 
-	describeQuery := "DESCRIBE " + c.tableName
-
-	rows, err := c.db.Query(describeQuery)
+	rows, err := c.db.Query(c.queryBuilder.describeTable(c.tableName))
 	if err != nil {
 		return fmt.Errorf("failed to execute describe query: %v", err)
 	}
@@ -183,49 +172,4 @@ func (c *sqlClient) getColumnInfo() error {
 	}
 
 	return nil
-}
-
-func (c *sqlClient) PrepareSQL(ctx context.Context, keys []string, values []interface{}) (string, error) {
-
-	sqlString, _, err := squirrel.
-		Insert(c.tableName).
-		Columns(keys...).
-		Values(values...).
-		ToSql()
-	if err != nil {
-		return "", fmt.Errorf("error creating sqlString: %w", err)
-	}
-
-	sdk.Logger(ctx).Trace().Msgf("sql string\n%v\n", sqlString)
-
-	return sqlString, nil
-}
-
-func (c *sqlClient) BuildSQL(sql string, values []interface{}, types []string) (string, error) {
-
-	if len(values) != len(types) {
-		return "", fmt.Errorf("values and types slices should have the same length")
-	}
-
-	formattedValues := make([]string, len(values))
-	for i, value := range values {
-		formattedValues[i] = fmt.Sprintf("cast(\"%v\" as %s)", value, types[i])
-	}
-
-	placeholders := strings.Count(sql, "?")
-	if placeholders != len(values) {
-		return "", fmt.Errorf("number of placeholders in sql string should match the number of values")
-	}
-
-	sqlParts := strings.SplitN(sql, "?", placeholders+1)
-	rewrittenSQL := strings.Builder{}
-
-	for i, sqlPart := range sqlParts[:placeholders] {
-		rewrittenSQL.WriteString(sqlPart)
-		rewrittenSQL.WriteString(formattedValues[i])
-	}
-
-	rewrittenSQL.WriteString(sqlParts[placeholders])
-
-	return rewrittenSQL.String(), nil
 }
