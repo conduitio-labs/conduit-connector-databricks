@@ -135,12 +135,12 @@ func TestSqlClient_Insert(t *testing.T) {
 
 	count := 0
 	for rows.Next() {
-		var id *int64
-		var name *string
-		var fullTime *bool
+		var id int64
+		var name string
+		var fullTime bool
 		var updatedAt time.Time
 
-		err := rows.Scan(id, name, fullTime, updatedAt)
+		err := rows.Scan(&id, &name, &fullTime, &updatedAt)
 		is.NoErr(err)
 
 		count++

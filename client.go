@@ -110,8 +110,12 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 	}
 
 	for colName, colType := range c.columnTypes {
+		value, ok := payload[colName]
+		if !ok {
+			continue
+		}
 		colNames = append(colNames, colName)
-		values = append(values, payload[colName])
+		values = append(values, value)
 		types = append(types, colType)
 	}
 
