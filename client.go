@@ -106,13 +106,23 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 
 	payload := make(sdk.StructuredData)
 	if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
-		return fmt.Errorf("error unmarshalling: %w", err)
+		return fmt.Errorf("error unmarshalling payload: %w", err)
 	}
 
+	key := make(sdk.StructuredData)
+	if err := json.Unmarshal(record.Key.Bytes(), &key); err != nil {
+		return fmt.Errorf("error unmarshalling key: %w", err)
+	}
+
+	// merge key and payload fields
+	// todo we can probably remove column types and simplify this
 	for colName, colType := range c.columnTypes {
 		value, ok := payload[colName]
 		if !ok {
-			continue
+			value, ok = key[colName]
+			if !ok {
+				continue
+			}
 		}
 		colNames = append(colNames, colName)
 		values = append(values, value)
