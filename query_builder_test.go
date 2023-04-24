@@ -73,7 +73,7 @@ func TestQueryBuilder(t *testing.T) {
 			columns: []string{"id", "name"},
 			values:  []interface{}{1, "computer"},
 			types:   []string{"int", "varchar(100)"},
-			want:    `INSERT INTO products (id,name) VALUES (cast("1" as int),cast("computer" as varchar(100)))`,
+			want:    `INSERT INTO products (id,name) VALUES (1, "computer")`,
 			wantErr: "",
 		},
 	}

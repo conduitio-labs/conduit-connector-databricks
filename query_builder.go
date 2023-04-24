@@ -24,13 +24,19 @@ import (
 type ansiQueryBuilder struct {
 }
 
+// buildInsert builds an insert query.
 func (b *ansiQueryBuilder) buildInsert(
 	table string,
 	columns []string,
 	values []interface{},
 	types []string,
 ) (string, error) {
-	//prepare SQL statement
+	// Prepare SQL statement
+	// Currently, we build a statement with placeholders
+	// and then fill the values.
+	// Once Databricks supports prepared statements, we can simplify the code.
+	// It looks like Databricks is close to support those:
+	// https://github.com/databricks/databricks-sql-go/issues/84#issuecomment-1516815045
 	sqlString, err := b.buildWithPlaceholders(table, columns, values)
 	if err != nil {
 		return "", err

@@ -135,6 +135,10 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 	}
 	sdk.Logger(ctx).Trace().Msgf("sql string\n%v\n", sqlString)
 
+	// Currently, Databricks doesn't support prepared statements
+	// sqlString here comes with all the values filled in.
+	// However, it looks like Databricks is close to supporting it:
+	// https://github.com/databricks/databricks-sql-go/issues/84#issuecomment-1516815045
 	stmt, err := c.db.Prepare(sqlString)
 	if err != nil {
 		return fmt.Errorf("failed to prepare db statement: %w", err)
