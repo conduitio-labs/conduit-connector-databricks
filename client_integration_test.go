@@ -69,7 +69,7 @@ func (th *testHelper) createTestTable(cfg Config) error {
     id int,
     name varchar(255),
     full_time boolean,
-    update_at timestamp
+    updated_at timestamp
 );`
 
 	_, err := th.db.Exec(fmt.Sprintf(testTableCreate, cfg.TableName))
@@ -116,14 +116,21 @@ func TestSqlClient_Insert(t *testing.T) {
 	err = underTest.Open(ctx, th.cfg)
 	is.NoErr(err)
 
+	wantID := 123
+	wantName := "test name"
+	wantFullTime := true
+	wantUpdatedAt := time.Now().UTC()
+
 	rec := sdk.Record{
 		Position:  sdk.Position("test-pos"),
 		Operation: sdk.OperationCreate,
 		Metadata:  nil,
-		Key:       sdk.StructuredData{"id": 123},
+		Key:       sdk.StructuredData{"id": wantID},
 		Payload: sdk.Change{
 			After: sdk.StructuredData{
-				"name": "test name",
+				"name":       wantName,
+				"full_time":  wantFullTime,
+				"updated_at": wantUpdatedAt,
 			},
 		},
 	}
@@ -135,16 +142,19 @@ func TestSqlClient_Insert(t *testing.T) {
 
 	count := 0
 	for rows.Next() {
-		var id int
-		var name string
-		var fullTime sql.NullBool
-		var updatedAt sql.NullTime
+		var gotID int
+		var gotName string
+		var gotFullTime bool
+		var gotUpdatedAt time.Time
 
-		err := rows.Scan(&id, &name, &fullTime, &updatedAt)
+		err := rows.Scan(&gotID, &gotName, &gotFullTime, &gotUpdatedAt)
 		is.NoErr(err)
 
 		count++
-		is.Equal(123, id)
+		is.Equal(wantID, gotID)
+		is.Equal(wantName, gotName)
+		is.Equal(wantFullTime, gotFullTime)
+		is.Equal(wantUpdatedAt, gotUpdatedAt)
 	}
 	is.Equal(1, count)
 }
