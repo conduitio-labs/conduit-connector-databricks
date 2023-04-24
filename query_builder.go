@@ -24,6 +24,8 @@ import (
 
 func init() {
 	opts := goqu.DefaultDialectOptions()
+	// Databricks identifiers are enclosed in backticks
+	// https://docs.databricks.com/sql/language-manual/sql-ref-identifiers.html
 	opts.QuoteRune = '`'
 	goqu.RegisterDialect("databricks-dialect", opts)
 }
