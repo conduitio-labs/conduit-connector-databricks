@@ -170,7 +170,8 @@ func (c *sqlClient) Delete(context.Context, sdk.Record) error {
 
 // getColumnInfo gets information on all the column names and types and stores them
 func (c *sqlClient) getColumnInfo() error {
-	var ignoredValue sql.NullString
+	// we'll ignore the comment
+	var columnComment sql.NullString
 
 	rows, err := c.db.Query(c.queryBuilder.describeTable(c.tableName))
 	if err != nil {
@@ -181,7 +182,7 @@ func (c *sqlClient) getColumnInfo() error {
 	for rows.Next() {
 		var colName string
 		var colType string
-		err := rows.Scan(&colName, &colType, &ignoredValue)
+		err := rows.Scan(&colName, &colType, &columnComment)
 		if err != nil {
 			return fmt.Errorf("failed to next(): %v", err)
 		}
