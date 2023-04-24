@@ -36,7 +36,7 @@ func init() {
 const ansiMode = "ansi_mode"
 
 type queryBuilder interface {
-	buildInsert(table string, columns []string, values []interface{}, types []string) (string, error)
+	buildInsert(table string, columns []string, values []interface{}) (string, error)
 
 	describeTable(table string) string
 }
@@ -129,7 +129,7 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 		types = append(types, colType)
 	}
 
-	sqlString, err := c.queryBuilder.buildInsert(c.tableName, colNames, values, types)
+	sqlString, err := c.queryBuilder.buildInsert(c.tableName, colNames, values)
 	if err != nil {
 		return fmt.Errorf("failed building query: %w", err)
 	}

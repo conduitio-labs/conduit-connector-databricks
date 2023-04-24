@@ -15,10 +15,11 @@
 package databricks
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/Masterminds/squirrel"
+	"github.com/doug-martin/goqu/v9"
 )
 
 type ansiQueryBuilder struct {
@@ -29,7 +30,6 @@ func (b *ansiQueryBuilder) buildInsert(
 	table string,
 	columns []string,
 	values []interface{},
-	types []string,
 ) (string, error) {
 	// Prepare SQL statement
 	// Currently, we build a statement with placeholders
@@ -37,16 +37,6 @@ func (b *ansiQueryBuilder) buildInsert(
 	// Once Databricks supports prepared statements, we can simplify the code.
 	// It looks like Databricks is close to support those:
 	// https://github.com/databricks/databricks-sql-go/issues/84#issuecomment-1516815045
-	sqlString, err := b.buildWithPlaceholders(table, columns, values)
-	if err != nil {
-		return "", err
-	}
-
-	//build SQL statement
-	return b.fillPlaceholders(sqlString, values, types)
-}
-
-func (b *ansiQueryBuilder) buildWithPlaceholders(table string, columns []string, values []interface{}) (string, error) {
 	if len(columns) != len(values) {
 		return "", fmt.Errorf(
 			"expected equal number of columns and values, but got %v column(s) and %v value(s)",
@@ -54,50 +44,20 @@ func (b *ansiQueryBuilder) buildWithPlaceholders(table string, columns []string,
 			len(values),
 		)
 	}
-	sqlString, _, err := squirrel.
-		Insert(table).
-		Columns(columns...).
-		Values(values...).
-		ToSql()
-	if err != nil {
-		return "", fmt.Errorf("error creating sqlString: %w", err)
+	if strings.TrimSpace(table) == "" {
+		return "", errors.New("error creating sqlString: insert statements must specify a table")
 	}
 
-	return sqlString, nil
-}
-
-func (b *ansiQueryBuilder) fillPlaceholders(sql string, values []interface{}, types []string) (string, error) {
-	if len(values) != len(types) {
-		return "", fmt.Errorf(
-			"expected equal number of columns and values, but got %v value(s) and %v type(s)",
-			len(values),
-			len(types),
-		)
+	var cols []interface{}
+	for _, col := range columns {
+		cols = append(cols, col)
 	}
+	q, _, err := goqu.Insert(table).
+		Cols(cols...).
+		Vals(values).
+		ToSQL()
 
-	formattedValues := make([]string, len(values))
-	for i, value := range values {
-		// todo make using cast an exception
-		// e.g. when we get an int, and the column type is int, no need to cast
-		formattedValues[i] = fmt.Sprintf("cast(\"%v\" as %s)", value, types[i])
-	}
-
-	placeholders := strings.Count(sql, "?")
-	if placeholders != len(values) {
-		return "", fmt.Errorf("number of placeholders in sql string should match the number of values")
-	}
-
-	sqlParts := strings.SplitN(sql, "?", placeholders+1)
-	rewrittenSQL := strings.Builder{}
-
-	for i, sqlPart := range sqlParts[:placeholders] {
-		rewrittenSQL.WriteString(sqlPart)
-		rewrittenSQL.WriteString(formattedValues[i])
-	}
-
-	rewrittenSQL.WriteString(sqlParts[placeholders])
-
-	return rewrittenSQL.String(), nil
+	return q, err
 }
 
 func (b *ansiQueryBuilder) describeTable(table string) string {

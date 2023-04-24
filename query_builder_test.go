@@ -26,7 +26,6 @@ func TestQueryBuilder(t *testing.T) {
 		table   string
 		columns []string
 		values  []interface{}
-		types   []string
 
 		want    string
 		wantErr string
@@ -36,7 +35,6 @@ func TestQueryBuilder(t *testing.T) {
 			table:   "products",
 			columns: []string{"id"},
 			values:  []interface{}{1, "computer"},
-			types:   []string{"int", "varchar(100)"},
 			want:    "",
 			wantErr: "expected equal number of columns and values, but got 1 column(s) and 2 value(s)",
 		},
@@ -45,35 +43,23 @@ func TestQueryBuilder(t *testing.T) {
 			table:   "products",
 			columns: []string{"id", "name"},
 			values:  []interface{}{1},
-			types:   []string{"int", "varchar(100)"},
 			want:    "",
 			wantErr: "expected equal number of columns and values, but got 2 column(s) and 1 value(s)",
-		},
-		{
-			name:    "not enough types",
-			table:   "products",
-			columns: []string{"id", "name"},
-			values:  []interface{}{1, "computer"},
-			types:   []string{"int"},
-			want:    "",
-			wantErr: "expected equal number of columns and values, but got 2 value(s) and 1 type(s)",
 		},
 		{
 			name:    "no table",
 			table:   "",
 			columns: []string{"id", "name"},
 			values:  []interface{}{1, "computer"},
-			types:   []string{"int", "varchar(100)"},
 			want:    ``,
 			wantErr: "error creating sqlString: insert statements must specify a table",
 		},
 		{
 			name:    "simple insert",
-			table:   "products",
+			table:   "test.products",
 			columns: []string{"id", "name"},
 			values:  []interface{}{1, "computer"},
-			types:   []string{"int", "varchar(100)"},
-			want:    `INSERT INTO products (id,name) VALUES (1, "computer")`,
+			want:    `INSERT INTO "test"."products" ("id", "name") VALUES (1, 'computer')`,
 			wantErr: "",
 		},
 	}
@@ -83,7 +69,7 @@ func TestQueryBuilder(t *testing.T) {
 			is := is.New(t)
 
 			underTest := &ansiQueryBuilder{}
-			sql, err := underTest.buildInsert(tc.table, tc.columns, tc.values, tc.types)
+			sql, err := underTest.buildInsert(tc.table, tc.columns, tc.values)
 			if tc.wantErr != "" {
 				is.Equal("", sql)
 				is.Equal(tc.wantErr, err.Error())
