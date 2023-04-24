@@ -119,7 +119,7 @@ func TestSqlClient_Insert(t *testing.T) {
 	wantID := 123
 	wantName := "test name"
 	wantFullTime := true
-	wantUpdatedAt := time.Now().UTC()
+	wantUpdatedAt := time.Now().Truncate(time.Millisecond).UTC()
 
 	rec := sdk.Record{
 		Position:  sdk.Position("test-pos"),

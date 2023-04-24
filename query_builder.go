@@ -22,6 +22,14 @@ import (
 	"github.com/doug-martin/goqu/v9"
 )
 
+func init() {
+	opts := goqu.DefaultDialectOptions()
+	opts.QuoteRune = '`'
+	goqu.RegisterDialect("databricks-dialect", opts)
+}
+
+var dialect = goqu.Dialect("databricks-dialect")
+
 type ansiQueryBuilder struct {
 }
 
@@ -52,7 +60,7 @@ func (b *ansiQueryBuilder) buildInsert(
 	for _, col := range columns {
 		cols = append(cols, col)
 	}
-	q, _, err := goqu.Insert(table).
+	q, _, err := dialect.Insert(table).
 		Cols(cols...).
 		Vals(values).
 		ToSQL()
