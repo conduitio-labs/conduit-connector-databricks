@@ -42,11 +42,6 @@ func (b *ansiQueryBuilder) buildInsert(
 	values []interface{},
 ) (string, error) {
 	// Prepare SQL statement
-	// Currently, we build a statement with placeholders
-	// and then fill the values.
-	// Once Databricks supports prepared statements, we can simplify the code.
-	// It looks like Databricks is close to support those:
-	// https://github.com/databricks/databricks-sql-go/issues/84#issuecomment-1516815045
 	if len(columns) != len(values) {
 		return "", fmt.Errorf(
 			"expected equal number of columns and values, but got %v column(s) and %v value(s)",
