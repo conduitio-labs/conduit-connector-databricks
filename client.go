@@ -44,13 +44,12 @@ type queryBuilder interface {
 type sqlClient struct {
 	db           *sql.DB
 	tableName    string
-	columnTypes  map[string]string
+	columns      []string
 	queryBuilder queryBuilder
 }
 
 func newClient() *sqlClient {
 	return &sqlClient{
-		columnTypes:  make(map[string]string),
 		queryBuilder: &ansiQueryBuilder{},
 	}
 }
@@ -102,7 +101,6 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 
 	var colNames []string
 	var values []interface{}
-	var types []string
 
 	payload := make(sdk.StructuredData)
 	if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
@@ -115,8 +113,7 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 	}
 
 	// merge key and payload fields
-	// todo we can probably remove column types and simplify this
-	for colName, colType := range c.columnTypes {
+	for _, colName := range c.columns {
 		value, ok := payload[colName]
 		if !ok {
 			value, ok = key[colName]
@@ -126,7 +123,6 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 		}
 		colNames = append(colNames, colName)
 		values = append(values, value)
-		types = append(types, colType)
 	}
 
 	sqlString, err := c.queryBuilder.buildInsert(c.tableName, colNames, values)
@@ -171,7 +167,7 @@ func (c *sqlClient) Delete(context.Context, sdk.Record) error {
 // getColumnInfo gets information on all the column names and types and stores them
 func (c *sqlClient) getColumnInfo() error {
 	// we'll ignore the comment
-	var columnComment sql.NullString
+	var ignore sql.NullString
 
 	rows, err := c.db.Query(c.queryBuilder.describeTable(c.tableName))
 	if err != nil {
@@ -181,13 +177,12 @@ func (c *sqlClient) getColumnInfo() error {
 
 	for rows.Next() {
 		var colName string
-		var colType string
-		err := rows.Scan(&colName, &colType, &columnComment)
+		err := rows.Scan(&colName, &ignore, &ignore)
 		if err != nil {
 			return fmt.Errorf("failed to next(): %v", err)
 		}
 
-		c.columnTypes[colName] = colType
+		c.columns = append(c.columns, colName)
 	}
 
 	return nil
