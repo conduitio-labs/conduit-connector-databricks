@@ -76,10 +76,6 @@ func (d *Destination) Configure(ctx context.Context, cfg map[string]string) erro
 
 	d.client = newClient()
 
-	if err != nil {
-		return fmt.Errorf("invalid config: %w", err)
-	}
-
 	return nil
 }
 
