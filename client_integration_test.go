@@ -17,6 +17,7 @@ package databricks
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -28,6 +29,8 @@ import (
 	"github.com/matryer/is"
 )
 
+var errMissingConfig = errors.New("missing config value")
+
 type testHelper struct {
 	cfg Config
 	db  *sql.DB
@@ -35,10 +38,28 @@ type testHelper struct {
 
 func newTestHelper() (*testHelper, error) {
 	token := os.Getenv("DATABRICKS_API_TOKEN")
+	if token == "" {
+		return nil, fmt.Errorf("token: %w", errMissingConfig)
+	}
+
 	host := os.Getenv("DATABRICKS_HOST")
+	if host == "" {
+		return nil, fmt.Errorf("host: %w", errMissingConfig)
+	}
+
 	portStr := os.Getenv("DATABRICKS_PORT")
-	port, _ := strconv.ParseInt(portStr, 10, 0)
+	if portStr == "" {
+		return nil, fmt.Errorf("port: %w", errMissingConfig)
+	}
+	port, err := strconv.ParseInt(portStr, 10, 0)
+	if err != nil {
+		return nil, err
+	}
+
 	httpPath := os.Getenv("DATABRICKS_HTTP_PATH")
+	if httpPath == "" {
+		return nil, fmt.Errorf("http path: %w", errMissingConfig)
+	}
 
 	cfg := Config{
 		Token:     token,
@@ -107,6 +128,9 @@ func TestSqlClient_Insert(t *testing.T) {
 
 	underTest := newClient()
 	th, err := newTestHelper()
+	if errors.Is(err, errMissingConfig) {
+		t.Skipf("configuration not provided")
+	}
 	is.NoErr(err)
 	defer func() {
 		is.NoErr(th.cleanup())
