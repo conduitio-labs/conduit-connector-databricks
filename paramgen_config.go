@@ -33,7 +33,7 @@ func (Config) Parameters() map[string]sdk.Parameter {
 		},
 		"tableName": {
 			Default:     "",
-			Description: "Table name",
+			Description: "Default table to which records will be written",
 			Type:        sdk.ParameterTypeString,
 			Validations: []sdk.Validation{
 				sdk.ValidationRequired{},
