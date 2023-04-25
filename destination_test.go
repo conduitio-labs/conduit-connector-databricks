@@ -38,7 +38,7 @@ func TestConfigure(t *testing.T) {
 	err = underTest.Configure(ctx, cfgMap)
 	is.NoErr(err)
 
-	client.EXPECT().Open(gomock.Any(), cfg)
+	client.EXPECT().Open(gomock.Any(), cfg).Return(nil)
 	err = underTest.Open(ctx)
 	is.NoErr(err)
 }
