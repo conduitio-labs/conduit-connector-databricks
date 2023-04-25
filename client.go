@@ -23,7 +23,7 @@ import (
 	"time"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
-	"github.com/databricks/databricks-sql-go"
+	dbsql "github.com/databricks/databricks-sql-go"
 	"github.com/rs/zerolog"
 )
 
