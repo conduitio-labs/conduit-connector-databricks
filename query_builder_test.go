@@ -59,7 +59,7 @@ func TestQueryBuilder(t *testing.T) {
 			table:   "test.products",
 			columns: []string{"id", "name"},
 			values:  []interface{}{1, "computer"},
-			want:    `INSERT INTO "test"."products" ("id", "name") VALUES (1, 'computer')`,
+			want:    "INSERT INTO `test`.`products` (`id`, `name`) VALUES (1, 'computer')",
 			wantErr: "",
 		},
 	}
