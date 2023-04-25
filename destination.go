@@ -33,7 +33,7 @@ type Config struct {
 	Port int `json:"port" default:"443"`
 	// Databricks compute resources URL
 	HTTPath string `json:"httpPath" validate:"required"`
-	//Table name
+	// Default table to which records will be written
 	TableName string `json:"tableName" validate:"required"`
 }
 

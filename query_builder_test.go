@@ -15,8 +15,9 @@
 package databricks
 
 import (
-	"github.com/matryer/is"
 	"testing"
+
+	"github.com/matryer/is"
 )
 
 func TestQueryBuilder(t *testing.T) {

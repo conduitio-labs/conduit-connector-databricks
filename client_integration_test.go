@@ -18,14 +18,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	dbsql "github.com/databricks/databricks-sql-go"
 	"os"
 	"strconv"
 	"testing"
 	"time"
 
 	sdk "github.com/conduitio/conduit-connector-sdk"
-	_ "github.com/databricks/databricks-sql-go"
+	dbsql "github.com/databricks/databricks-sql-go"
 	"github.com/matryer/is"
 )
 
@@ -137,7 +136,7 @@ func TestSqlClient_Insert(t *testing.T) {
 	err = underTest.Insert(ctx, rec)
 	is.NoErr(err)
 
-	rows, err := th.db.Query("SELECT * FROM " + th.cfg.TableName)
+	rows, err := th.db.Query("SELECT * FROM " + th.cfg.TableName) //nolint:gosec // ok since this is a test
 	is.NoErr(err)
 
 	count := 0
