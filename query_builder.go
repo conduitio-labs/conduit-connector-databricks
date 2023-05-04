@@ -35,6 +35,20 @@ var dialect = goqu.Dialect("databricks-dialect")
 type ansiQueryBuilder struct {
 }
 
+func (b *ansiQueryBuilder) buildUpdate(table string, keys map[string]interface{}, values map[string]interface{}) (string, error) {
+	// transforms keys map into a goqu.Ex
+	w := goqu.Ex{}
+	for k, v := range keys {
+		w[k] = v
+	}
+	q, _, err := dialect.Update(table).
+		Set(values).
+		Where(w).
+		ToSQL()
+
+	return q, err
+}
+
 // buildInsert builds an insert query.
 func (b *ansiQueryBuilder) buildInsert(
 	table string,

@@ -199,22 +199,15 @@ func TestClient_Update_DoesntExist(t *testing.T) {
 	err = underTest.Open(ctx, th.cfg)
 	is.NoErr(err)
 
-	wantID := 123
-	wantName := "test name"
-	wantFullTime := true
-	wantUpdatedAt := time.Now().Truncate(time.Millisecond).UTC()
-
 	// perform update
 	rec := sdk.Record{
 		Position:  sdk.Position("test-pos"),
 		Operation: sdk.OperationUpdate,
 		Metadata:  nil,
-		Key:       sdk.StructuredData{"id": wantID},
+		Key:       sdk.StructuredData{"id": 123},
 		Payload: sdk.Change{
 			After: sdk.StructuredData{
-				"name": wantName,
-				// full_time left out
-				"updated_at": wantUpdatedAt,
+				"name": "a name",
 			},
 		},
 	}
@@ -223,24 +216,7 @@ func TestClient_Update_DoesntExist(t *testing.T) {
 
 	rows, err := th.db.Query("SELECT * FROM " + th.cfg.TableName) //nolint:gosec // ok since this is a test
 	is.NoErr(err)
-
-	count := 0
-	for rows.Next() {
-		var gotID int
-		var gotName string
-		var gotFullTime bool
-		var gotUpdatedAt time.Time
-
-		err := rows.Scan(&gotID, &gotName, &gotFullTime, &gotUpdatedAt)
-		is.NoErr(err)
-
-		count++
-		is.Equal(wantID, gotID)
-		is.Equal(wantName, gotName)
-		is.Equal(wantFullTime, gotFullTime)
-		is.Equal(wantUpdatedAt, gotUpdatedAt)
-	}
-	is.Equal(1, count)
+	is.True(!rows.Next())
 }
 
 func TestClient_Update_Partial(t *testing.T) {

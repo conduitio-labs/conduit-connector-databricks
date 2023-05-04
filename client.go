@@ -37,6 +37,7 @@ const ansiMode = "ansi_mode"
 
 type queryBuilder interface {
 	buildInsert(table string, columns []string, values []interface{}) (string, error)
+	buildUpdate(table string, keys map[string]interface{}, values map[string]interface{}) (string, error)
 
 	describeTable(table string) string
 }
@@ -129,7 +130,7 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 	if err != nil {
 		return fmt.Errorf("failed building query: %w", err)
 	}
-	sdk.Logger(ctx).Trace().Msgf("sql string\n%v\n", sqlString)
+	sdk.Logger(ctx).Trace().Msgf("insert sql string\n%v\n", sqlString)
 
 	// Currently, Databricks doesn't support prepared statements
 	// sqlString here comes with all the values filled in.
@@ -145,6 +146,7 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 	if err != nil {
 		return fmt.Errorf("failed to execute db statement: %w ", err)
 	}
+
 	affected, err := res.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("failed to get number of affected rows: %w ", err)
@@ -156,8 +158,33 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 	return nil
 }
 
-func (c *sqlClient) Update(context.Context, sdk.Record) error {
-	return errors.New("update not implemented")
+func (c *sqlClient) Update(ctx context.Context, record sdk.Record) error {
+	sdk.Logger(ctx).Trace().Msg("inserting record")
+
+	payload := make(sdk.StructuredData)
+	if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
+		return fmt.Errorf("error unmarshalling payload: %w", err)
+	}
+
+	key := make(sdk.StructuredData)
+	if err := json.Unmarshal(record.Key.Bytes(), &key); err != nil {
+		return fmt.Errorf("error unmarshalling key: %w", err)
+	}
+
+	sqlString, err := c.queryBuilder.buildUpdate(c.tableName, key, payload)
+	if err != nil {
+		return fmt.Errorf("failed building query: %w", err)
+	}
+	sdk.Logger(ctx).Trace().Msgf("update sql string\n%v\n", sqlString)
+
+	// we're not checking the number of affected rows
+	// as we're not even sure that a row with the same key has already been inserted
+	_, err = c.db.ExecContext(ctx, sqlString)
+	if err != nil {
+		return fmt.Errorf("failed update: %w", err)
+	}
+
+	return nil
 }
 
 func (c *sqlClient) Delete(context.Context, sdk.Record) error {
