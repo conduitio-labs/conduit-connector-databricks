@@ -161,6 +161,11 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 func (c *sqlClient) Update(ctx context.Context, record sdk.Record) error {
 	sdk.Logger(ctx).Trace().Msg("inserting record")
 
+	// nothing to update
+	if record.Payload.After == nil || len(record.Payload.After.Bytes()) == 0 {
+		return nil
+	}
+
 	payload := make(sdk.StructuredData)
 	if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
 		return fmt.Errorf("error unmarshalling payload: %w", err)

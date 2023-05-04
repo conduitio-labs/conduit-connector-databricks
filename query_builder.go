@@ -35,7 +35,21 @@ var dialect = goqu.Dialect("databricks-dialect")
 type ansiQueryBuilder struct {
 }
 
-func (b *ansiQueryBuilder) buildUpdate(table string, keys map[string]interface{}, values map[string]interface{}) (string, error) {
+func (b *ansiQueryBuilder) buildUpdate(
+	table string,
+	keys map[string]interface{},
+	values map[string]interface{},
+) (string, error) {
+	if table == "" {
+		return "", errors.New("table name not provided")
+	}
+	if len(keys) == 0 {
+		return "", errors.New("no keys provided")
+	}
+	if len(values) == 0 {
+		return "", errors.New("no values provided")
+	}
+
 	// transforms keys map into a goqu.Ex
 	w := goqu.Ex{}
 	for k, v := range keys {
