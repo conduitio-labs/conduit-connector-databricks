@@ -31,6 +31,14 @@ func (Config) Parameters() map[string]sdk.Parameter {
 			Type:        sdk.ParameterTypeInt,
 			Validations: []sdk.Validation{},
 		},
+		"tableName": {
+			Default:     "",
+			Description: "Default table to which records will be written",
+			Type:        sdk.ParameterTypeString,
+			Validations: []sdk.Validation{
+				sdk.ValidationRequired{},
+			},
+		},
 		"token": {
 			Default:     "",
 			Description: "Personal access token.",

@@ -33,11 +33,17 @@ type Config struct {
 	Port int `json:"port" default:"443"`
 	// Databricks compute resources URL
 	HTTPath string `json:"httpPath" validate:"required"`
+	// Default table to which records will be written
+	TableName string `json:"tableName" validate:"required"`
 }
 
 type Client interface {
 	Open(context.Context, Config) error
 	Close() error
+
+	Insert(ctx context.Context, record sdk.Record) error
+	Update(ctx context.Context, record sdk.Record) error
+	Delete(ctx context.Context, record sdk.Record) error
 }
 
 type Destination struct {
@@ -67,6 +73,7 @@ func (d *Destination) Configure(ctx context.Context, cfg map[string]string) erro
 	if err != nil {
 		return fmt.Errorf("invalid config: %w", err)
 	}
+
 	return nil
 }
 
@@ -82,7 +89,22 @@ func (d *Destination) Open(ctx context.Context) error {
 
 func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, error) {
 	sdk.Logger(ctx).Trace().Msgf("writing %v records", len(records))
-	return 0, nil
+
+	for i, record := range records {
+		err := sdk.Util.Destination.Route(
+			ctx,
+			record,
+			d.client.Insert,
+			d.client.Update,
+			d.client.Delete,
+			d.client.Insert,
+		)
+		if err != nil {
+			return i, fmt.Errorf("unable to handle record: %w", err)
+		}
+	}
+
+	return len(records), nil
 }
 
 func (d *Destination) Teardown(ctx context.Context) error {

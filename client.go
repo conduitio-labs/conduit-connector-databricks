@@ -17,6 +17,8 @@ package databricks
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -33,12 +35,23 @@ func init() {
 
 const ansiMode = "ansi_mode"
 
+type queryBuilder interface {
+	buildInsert(table string, columns []string, values []interface{}) (string, error)
+
+	describeTable(table string) string
+}
+
 type sqlClient struct {
-	db *sql.DB
+	db           *sql.DB
+	tableName    string
+	columns      []string
+	queryBuilder queryBuilder
 }
 
 func newClient() *sqlClient {
-	return &sqlClient{}
+	return &sqlClient{
+		queryBuilder: &ansiQueryBuilder{},
+	}
 }
 
 func (c *sqlClient) Open(ctx context.Context, config Config) error {
@@ -64,6 +77,12 @@ func (c *sqlClient) Open(ctx context.Context, config Config) error {
 		return fmt.Errorf("failed to ping database: %w", err)
 	}
 	c.db = db
+	c.tableName = config.TableName
+
+	err = c.getColumnInfo()
+	if err != nil {
+		return fmt.Errorf("unable to get column information: %w", err)
+	}
 
 	sdk.Logger(ctx).Debug().Msg("sql client opened")
 	return nil
@@ -72,6 +91,98 @@ func (c *sqlClient) Open(ctx context.Context, config Config) error {
 func (c *sqlClient) Close() error {
 	if c.db != nil {
 		return c.db.Close()
+	}
+
+	return nil
+}
+
+func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
+	sdk.Logger(ctx).Trace().Msg("inserting record")
+
+	var colNames []string
+	var values []interface{}
+
+	payload := make(sdk.StructuredData)
+	if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
+		return fmt.Errorf("error unmarshalling payload: %w", err)
+	}
+
+	key := make(sdk.StructuredData)
+	if err := json.Unmarshal(record.Key.Bytes(), &key); err != nil {
+		return fmt.Errorf("error unmarshalling key: %w", err)
+	}
+
+	// merge key and payload fields
+	for _, colName := range c.columns {
+		value, ok := payload[colName]
+		if !ok {
+			value, ok = key[colName]
+			if !ok {
+				continue
+			}
+		}
+		colNames = append(colNames, colName)
+		values = append(values, value)
+	}
+
+	sqlString, err := c.queryBuilder.buildInsert(c.tableName, colNames, values)
+	if err != nil {
+		return fmt.Errorf("failed building query: %w", err)
+	}
+	sdk.Logger(ctx).Trace().Msgf("sql string\n%v\n", sqlString)
+
+	// Currently, Databricks doesn't support prepared statements
+	// sqlString here comes with all the values filled in.
+	// However, it looks like Databricks is close to supporting it:
+	// https://github.com/databricks/databricks-sql-go/issues/84#issuecomment-1516815045
+	stmt, err := c.db.Prepare(sqlString)
+	if err != nil {
+		return fmt.Errorf("failed to prepare db statement: %w", err)
+	}
+	defer stmt.Close()
+
+	res, err := stmt.ExecContext(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to execute db statement: %w ", err)
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get number of affected rows: %w ", err)
+	}
+	if affected != 1 {
+		return fmt.Errorf("%v rows inserted", affected)
+	}
+
+	return nil
+}
+
+func (c *sqlClient) Update(context.Context, sdk.Record) error {
+	return errors.New("update not implemented")
+}
+
+func (c *sqlClient) Delete(context.Context, sdk.Record) error {
+	return errors.New("delete not implemented")
+}
+
+// getColumnInfo gets information on all the column names and types and stores them
+func (c *sqlClient) getColumnInfo() error {
+	// we'll ignore the comment
+	var ignore sql.NullString
+
+	rows, err := c.db.Query(c.queryBuilder.describeTable(c.tableName))
+	if err != nil {
+		return fmt.Errorf("failed to execute describe query: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var colName string
+		err := rows.Scan(&colName, &ignore, &ignore)
+		if err != nil {
+			return fmt.Errorf("failed to next(): %v", err)
+		}
+
+		c.columns = append(c.columns, colName)
 	}
 
 	return nil

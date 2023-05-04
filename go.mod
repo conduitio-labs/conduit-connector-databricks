@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/conduitio/conduit-connector-sdk v0.6.0
 	github.com/databricks/databricks-sql-go v1.2.0
+	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/golang/mock v1.6.0
 	github.com/matryer/is v1.4.1
 	github.com/rs/zerolog v1.29.1
