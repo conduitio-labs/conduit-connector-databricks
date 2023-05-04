@@ -35,6 +35,29 @@ var dialect = goqu.Dialect("databricks-dialect")
 type ansiQueryBuilder struct {
 }
 
+func (b *ansiQueryBuilder) buildDelete(
+	table string,
+	keys map[string]interface{},
+) (string, error) {
+	if table == "" {
+		return "", errors.New("table name not provided")
+	}
+	if len(keys) == 0 {
+		return "", errors.New("no keys provided")
+	}
+
+	// transforms keys map into a goqu.Ex
+	w := goqu.Ex{}
+	for k, v := range keys {
+		w[k] = v
+	}
+	q, _, err := dialect.Delete(table).
+		Where(w).
+		ToSQL()
+
+	return q, err
+}
+
 func (b *ansiQueryBuilder) buildUpdate(
 	table string,
 	keys map[string]interface{},

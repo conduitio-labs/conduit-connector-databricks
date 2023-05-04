@@ -118,7 +118,8 @@ func TestQueryBuilder_Update(t *testing.T) {
 			values:  map[string]interface{}{"name": "strawberry yoghurt"},
 			want:    "",
 			wantErr: "no keys provided",
-		}, {
+		},
+		{
 			name:    "nil values",
 			table:   "test.products",
 			keys:    map[string]interface{}{"id": "a1b2"},
@@ -150,6 +151,65 @@ func TestQueryBuilder_Update(t *testing.T) {
 
 			underTest := &ansiQueryBuilder{}
 			sql, err := underTest.buildUpdate(tc.table, tc.keys, tc.values)
+			if tc.wantErr != "" {
+				is.Equal("", sql)
+				is.Equal(tc.wantErr, err.Error())
+
+				return
+			}
+
+			is.NoErr(err)
+			is.Equal(tc.want, sql)
+		})
+	}
+}
+
+func TestQueryBuilder_Delete(t *testing.T) {
+	testCases := []struct {
+		name string
+
+		table string
+		keys  map[string]interface{}
+
+		want    string
+		wantErr string
+	}{
+		{
+			name:    "simple delete",
+			table:   "test.products",
+			keys:    map[string]interface{}{"id": "a1b2"},
+			want:    "DELETE FROM `test`.`products` WHERE (`id` = 'a1b2')",
+			wantErr: "",
+		},
+		{
+			name:    "nil keys",
+			table:   "test.products",
+			keys:    nil,
+			want:    "",
+			wantErr: "no keys provided",
+		},
+		{
+			name:    "empty keys map",
+			table:   "test.products",
+			keys:    map[string]interface{}{},
+			want:    "",
+			wantErr: "no keys provided",
+		},
+		{
+			name:    "no table",
+			table:   "",
+			keys:    map[string]interface{}{"a": "b"},
+			want:    "",
+			wantErr: "table name not provided",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			is := is.New(t)
+
+			underTest := &ansiQueryBuilder{}
+			sql, err := underTest.buildDelete(tc.table, tc.keys)
 			if tc.wantErr != "" {
 				is.Equal("", sql)
 				is.Equal(tc.wantErr, err.Error())

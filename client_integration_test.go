@@ -335,7 +335,7 @@ func TestClient_Delete_Exists(t *testing.T) {
 	rows, err := th.db.Query("SELECT * FROM " + th.cfg.TableName) //nolint:gosec // ok since this is a test
 	is.NoErr(err)
 
-	is.Equal(0, rows.Next())
+	is.True(!rows.Next())
 }
 
 func TestClient_Delete_DoesntExist(t *testing.T) {
@@ -368,5 +368,5 @@ func TestClient_Delete_DoesntExist(t *testing.T) {
 	rows, err := th.db.Query("SELECT * FROM " + th.cfg.TableName) //nolint:gosec // ok since this is a test
 	is.NoErr(err)
 
-	is.Equal(0, rows.Next())
+	is.True(!rows.Next())
 }
