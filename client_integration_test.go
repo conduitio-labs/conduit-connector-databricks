@@ -315,3 +315,82 @@ func TestClient_Update_Partial(t *testing.T) {
 	}
 	is.Equal(1, count)
 }
+
+func TestClient_Delete_Exists(t *testing.T) {
+	is := is.New(t)
+	ctx := context.Background()
+
+	underTest := newClient()
+	th, err := newTestHelper()
+	if errors.Is(err, errMissingConfig) {
+		t.Skipf("configuration not provided")
+	}
+	is.NoErr(err)
+	defer func() {
+		is.NoErr(th.cleanup())
+	}()
+
+	err = underTest.Open(ctx, th.cfg)
+	is.NoErr(err)
+
+	// insert row
+	id := 123
+	q, _, err := dialect.Insert(th.cfg.TableName).
+		Cols("id", "name", "full_time", "updated_at").
+		Vals([]interface{}{id, "bye bye", true, time.Now().Add(-time.Hour).Truncate(time.Millisecond).UTC()}).
+		ToSQL()
+	is.NoErr(err)
+	result, err := th.db.ExecContext(ctx, q)
+	is.NoErr(err)
+	affected, err := result.RowsAffected()
+	is.NoErr(err)
+	is.Equal(int64(1), affected)
+
+	// perform update
+	rec := sdk.Record{
+		Position:  sdk.Position("test-pos"),
+		Operation: sdk.OperationDelete,
+		Metadata:  nil,
+		Key:       sdk.StructuredData{"id": id},
+	}
+	err = underTest.Delete(ctx, rec)
+	is.NoErr(err)
+
+	rows, err := th.db.Query("SELECT * FROM " + th.cfg.TableName) //nolint:gosec // ok since this is a test
+	is.NoErr(err)
+
+	is.Equal(0, rows.Next())
+}
+
+func TestClient_Delete_DoesntExist(t *testing.T) {
+	is := is.New(t)
+	ctx := context.Background()
+
+	underTest := newClient()
+	th, err := newTestHelper()
+	if errors.Is(err, errMissingConfig) {
+		t.Skipf("configuration not provided")
+	}
+	is.NoErr(err)
+	defer func() {
+		is.NoErr(th.cleanup())
+	}()
+
+	err = underTest.Open(ctx, th.cfg)
+	is.NoErr(err)
+
+	// perform update
+	rec := sdk.Record{
+		Position:  sdk.Position("test-pos"),
+		Operation: sdk.OperationDelete,
+		Metadata:  nil,
+		Key:       sdk.StructuredData{"id": 123},
+	}
+	err = underTest.Delete(ctx, rec)
+	is.NoErr(err)
+
+	rows, err := th.db.Query("SELECT * FROM " + th.cfg.TableName) //nolint:gosec // ok since this is a test
+	is.NoErr(err)
+
+	is.Equal(0, rows.Next())
+}
