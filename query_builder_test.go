@@ -15,6 +15,7 @@
 package databricks
 
 import (
+	"golang.org/x/exp/slices"
 	"testing"
 
 	"github.com/matryer/is"
@@ -27,7 +28,7 @@ func TestQueryBuilder_Insert(t *testing.T) {
 		table  string
 		values map[string]interface{}
 
-		want    string
+		want    []string
 		wantErr string
 	}{
 		{
@@ -37,17 +38,19 @@ func TestQueryBuilder_Insert(t *testing.T) {
 				"id":   1,
 				"name": "computer",
 			},
-			want:    ``,
 			wantErr: "error creating sqlString: insert statements must specify a table",
 		},
 		{
 			name:  "simple insert",
 			table: "test.products",
 			values: map[string]interface{}{
-				"id":   1,
 				"name": "computer",
+				"id":   1,
 			},
-			want:    "INSERT INTO `test`.`products` (`id`, `name`) VALUES (1, 'computer')",
+			want: []string{
+				"INSERT INTO `test`.`products` (`id`, `name`) VALUES (1, 'computer')",
+				"INSERT INTO `test`.`products` (`name`, `id`) VALUES ('computer', 1)",
+			},
 			wantErr: "",
 		},
 	}
@@ -66,7 +69,9 @@ func TestQueryBuilder_Insert(t *testing.T) {
 			}
 
 			is.NoErr(err)
-			is.Equal(tc.want, sql)
+			// to handle different ordering in the SQL string
+			// we check all combinations
+			is.True(slices.Contains(tc.want, sql)) // expected a different SQL string
 		})
 	}
 }
