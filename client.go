@@ -35,7 +35,7 @@ func init() {
 const ansiMode = "ansi_mode"
 
 type queryBuilder interface {
-	buildInsert(table string, columns []string, values []interface{}) (string, error)
+	buildInsert(table string, values map[string]interface{}) (string, error)
 	buildUpdate(table string, keys map[string]interface{}, values map[string]interface{}) (string, error)
 	buildDelete(table string, keys map[string]interface{}) (string, error)
 
@@ -100,9 +100,6 @@ func (c *sqlClient) Close() error {
 func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 	sdk.Logger(ctx).Trace().Msg("inserting record")
 
-	var colNames []string
-	var values []interface{}
-
 	payload := make(sdk.StructuredData)
 	if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
 		return fmt.Errorf("error unmarshalling payload: %w", err)
@@ -113,20 +110,9 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 		return fmt.Errorf("error unmarshalling key: %w", err)
 	}
 
-	// merge key and payload fields
-	for _, colName := range c.columns {
-		value, ok := payload[colName]
-		if !ok {
-			value, ok = key[colName]
-			if !ok {
-				continue
-			}
-		}
-		colNames = append(colNames, colName)
-		values = append(values, value)
-	}
+	insertValues := c.merge(payload, key)
 
-	sqlString, err := c.queryBuilder.buildInsert(c.tableName, colNames, values)
+	sqlString, err := c.queryBuilder.buildInsert(c.tableName, insertValues)
 	if err != nil {
 		return fmt.Errorf("failed building query: %w", err)
 	}
@@ -238,4 +224,16 @@ func (c *sqlClient) getColumnInfo() error {
 	}
 
 	return nil
+}
+
+func (c *sqlClient) merge(m1, m2 map[string]interface{}) map[string]interface{} {
+	merged := make(map[string]interface{})
+	for k, v := range m1 {
+		merged[k] = v
+	}
+	for k, v := range m2 {
+		merged[k] = v
+	}
+
+	return merged
 }

@@ -16,7 +16,6 @@ package databricks
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -35,24 +34,24 @@ var dialect = goqu.Dialect("databricks-dialect")
 type ansiQueryBuilder struct {
 }
 
-func (b *ansiQueryBuilder) buildDelete(
+// buildInsert builds an insert query.
+func (b *ansiQueryBuilder) buildInsert(
 	table string,
-	keys map[string]interface{},
+	values map[string]interface{},
 ) (string, error) {
-	if table == "" {
-		return "", errors.New("table name not provided")
-	}
-	if len(keys) == 0 {
-		return "", errors.New("no keys provided")
+	if strings.TrimSpace(table) == "" {
+		return "", errors.New("error creating sqlString: insert statements must specify a table")
 	}
 
-	// transforms keys map into a goqu.Ex
-	w := goqu.Ex{}
-	for k, v := range keys {
-		w[k] = v
+	var cols []interface{}
+	var vals []interface{}
+	for col, val := range values {
+		cols = append(cols, col)
+		vals = append(vals, val)
 	}
-	q, _, err := dialect.Delete(table).
-		Where(w).
+	q, _, err := dialect.Insert(table).
+		Cols(cols...).
+		Vals(vals).
 		ToSQL()
 
 	return q, err
@@ -86,31 +85,24 @@ func (b *ansiQueryBuilder) buildUpdate(
 	return q, err
 }
 
-// buildInsert builds an insert query.
-func (b *ansiQueryBuilder) buildInsert(
+func (b *ansiQueryBuilder) buildDelete(
 	table string,
-	columns []string,
-	values []interface{},
+	keys map[string]interface{},
 ) (string, error) {
-	// Prepare SQL statement
-	if len(columns) != len(values) {
-		return "", fmt.Errorf(
-			"expected equal number of columns and values, but got %v column(s) and %v value(s)",
-			len(columns),
-			len(values),
-		)
+	if table == "" {
+		return "", errors.New("table name not provided")
 	}
-	if strings.TrimSpace(table) == "" {
-		return "", errors.New("error creating sqlString: insert statements must specify a table")
+	if len(keys) == 0 {
+		return "", errors.New("no keys provided")
 	}
 
-	var cols []interface{}
-	for _, col := range columns {
-		cols = append(cols, col)
+	// transforms keys map into a goqu.Ex
+	w := goqu.Ex{}
+	for k, v := range keys {
+		w[k] = v
 	}
-	q, _, err := dialect.Insert(table).
-		Cols(cols...).
-		Vals(values).
+	q, _, err := dialect.Delete(table).
+		Where(w).
 		ToSQL()
 
 	return q, err
