@@ -15,10 +15,10 @@
 package databricks
 
 import (
-	"golang.org/x/exp/slices"
 	"testing"
 
 	"github.com/matryer/is"
+	"golang.org/x/exp/slices"
 )
 
 func TestQueryBuilder_Insert(t *testing.T) {
