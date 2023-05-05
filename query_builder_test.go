@@ -24,42 +24,29 @@ func TestQueryBuilder_Insert(t *testing.T) {
 	testCases := []struct {
 		name string
 
-		table   string
-		columns []string
-		values  []interface{}
+		table  string
+		values map[string]interface{}
 
 		want    string
 		wantErr string
 	}{
 		{
-			name:    "not enough columns",
-			table:   "products",
-			columns: []string{"id"},
-			values:  []interface{}{1, "computer"},
-			want:    "",
-			wantErr: "expected equal number of columns and values, but got 1 column(s) and 2 value(s)",
-		},
-		{
-			name:    "not enough values",
-			table:   "products",
-			columns: []string{"id", "name"},
-			values:  []interface{}{1},
-			want:    "",
-			wantErr: "expected equal number of columns and values, but got 2 column(s) and 1 value(s)",
-		},
-		{
-			name:    "no table",
-			table:   "",
-			columns: []string{"id", "name"},
-			values:  []interface{}{1, "computer"},
+			name:  "no table",
+			table: "",
+			values: map[string]interface{}{
+				"id":   1,
+				"name": "computer",
+			},
 			want:    ``,
 			wantErr: "error creating sqlString: insert statements must specify a table",
 		},
 		{
-			name:    "simple insert",
-			table:   "test.products",
-			columns: []string{"id", "name"},
-			values:  []interface{}{1, "computer"},
+			name:  "simple insert",
+			table: "test.products",
+			values: map[string]interface{}{
+				"id":   1,
+				"name": "computer",
+			},
 			want:    "INSERT INTO `test`.`products` (`id`, `name`) VALUES (1, 'computer')",
 			wantErr: "",
 		},
@@ -70,7 +57,7 @@ func TestQueryBuilder_Insert(t *testing.T) {
 			is := is.New(t)
 
 			underTest := &ansiQueryBuilder{}
-			sql, err := underTest.buildInsert(tc.table, tc.columns, tc.values)
+			sql, err := underTest.buildInsert(tc.table, tc.values)
 			if tc.wantErr != "" {
 				is.Equal("", sql)
 				is.Equal(tc.wantErr, err.Error())
