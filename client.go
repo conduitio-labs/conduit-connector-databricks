@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -36,7 +35,9 @@ func init() {
 const ansiMode = "ansi_mode"
 
 type queryBuilder interface {
-	buildInsert(table string, columns []string, values []interface{}) (string, error)
+	buildInsert(table string, values map[string]interface{}) (string, error)
+	buildUpdate(table string, keys map[string]interface{}, values map[string]interface{}) (string, error)
+	buildDelete(table string, keys map[string]interface{}) (string, error)
 
 	describeTable(table string) string
 }
@@ -99,9 +100,6 @@ func (c *sqlClient) Close() error {
 func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 	sdk.Logger(ctx).Trace().Msg("inserting record")
 
-	var colNames []string
-	var values []interface{}
-
 	payload := make(sdk.StructuredData)
 	if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
 		return fmt.Errorf("error unmarshalling payload: %w", err)
@@ -112,24 +110,13 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 		return fmt.Errorf("error unmarshalling key: %w", err)
 	}
 
-	// merge key and payload fields
-	for _, colName := range c.columns {
-		value, ok := payload[colName]
-		if !ok {
-			value, ok = key[colName]
-			if !ok {
-				continue
-			}
-		}
-		colNames = append(colNames, colName)
-		values = append(values, value)
-	}
+	insertValues := c.merge(payload, key)
 
-	sqlString, err := c.queryBuilder.buildInsert(c.tableName, colNames, values)
+	sqlString, err := c.queryBuilder.buildInsert(c.tableName, insertValues)
 	if err != nil {
 		return fmt.Errorf("failed building query: %w", err)
 	}
-	sdk.Logger(ctx).Trace().Msgf("sql string\n%v\n", sqlString)
+	sdk.Logger(ctx).Trace().Msgf("insert sql string\n%v\n", sqlString)
 
 	// Currently, Databricks doesn't support prepared statements
 	// sqlString here comes with all the values filled in.
@@ -145,6 +132,7 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 	if err != nil {
 		return fmt.Errorf("failed to execute db statement: %w ", err)
 	}
+
 	affected, err := res.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("failed to get number of affected rows: %w ", err)
@@ -156,12 +144,62 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 	return nil
 }
 
-func (c *sqlClient) Update(context.Context, sdk.Record) error {
-	return errors.New("update not implemented")
+func (c *sqlClient) Update(ctx context.Context, record sdk.Record) error {
+	sdk.Logger(ctx).Trace().Msg("updating record")
+
+	// nothing to update
+	if record.Payload.After == nil || len(record.Payload.After.Bytes()) == 0 {
+		return nil
+	}
+
+	payload := make(sdk.StructuredData)
+	if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
+		return fmt.Errorf("error unmarshalling payload: %w", err)
+	}
+
+	key := make(sdk.StructuredData)
+	if err := json.Unmarshal(record.Key.Bytes(), &key); err != nil {
+		return fmt.Errorf("error unmarshalling key: %w", err)
+	}
+
+	sqlString, err := c.queryBuilder.buildUpdate(c.tableName, key, payload)
+	if err != nil {
+		return fmt.Errorf("failed building update query: %w", err)
+	}
+	sdk.Logger(ctx).Trace().Msgf("update sql string\n%v\n", sqlString)
+
+	// we're not checking the number of affected rows
+	// as we're not even sure that a row with the same key has already been inserted
+	_, err = c.db.ExecContext(ctx, sqlString)
+	if err != nil {
+		return fmt.Errorf("failed update: %w", err)
+	}
+
+	return nil
 }
 
-func (c *sqlClient) Delete(context.Context, sdk.Record) error {
-	return errors.New("delete not implemented")
+func (c *sqlClient) Delete(ctx context.Context, record sdk.Record) error {
+	sdk.Logger(ctx).Trace().Msg("deleting record")
+
+	key := make(sdk.StructuredData)
+	if err := json.Unmarshal(record.Key.Bytes(), &key); err != nil {
+		return fmt.Errorf("error unmarshalling key: %w", err)
+	}
+
+	sqlString, err := c.queryBuilder.buildDelete(c.tableName, key)
+	if err != nil {
+		return fmt.Errorf("failed building delete query: %w", err)
+	}
+	sdk.Logger(ctx).Trace().Msgf("delete sql string\n%v\n", sqlString)
+
+	// we're not checking the number of affected rows
+	// as we're not even sure that a row with the same key has already been inserted
+	_, err = c.db.ExecContext(ctx, sqlString)
+	if err != nil {
+		return fmt.Errorf("failed delete: %w", err)
+	}
+
+	return nil
 }
 
 // getColumnInfo gets information on all the column names and types and stores them
@@ -186,4 +224,16 @@ func (c *sqlClient) getColumnInfo() error {
 	}
 
 	return nil
+}
+
+func (c *sqlClient) merge(m1, m2 map[string]interface{}) map[string]interface{} {
+	merged := make(map[string]interface{})
+	for k, v := range m1 {
+		merged[k] = v
+	}
+	for k, v := range m2 {
+		merged[k] = v
+	}
+
+	return merged
 }

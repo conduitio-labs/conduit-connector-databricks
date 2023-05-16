@@ -16,7 +16,6 @@ package databricks
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -38,28 +37,72 @@ type ansiQueryBuilder struct {
 // buildInsert builds an insert query.
 func (b *ansiQueryBuilder) buildInsert(
 	table string,
-	columns []string,
-	values []interface{},
+	values map[string]interface{},
 ) (string, error) {
-	// Prepare SQL statement
-	if len(columns) != len(values) {
-		return "", fmt.Errorf(
-			"expected equal number of columns and values, but got %v column(s) and %v value(s)",
-			len(columns),
-			len(values),
-		)
-	}
 	if strings.TrimSpace(table) == "" {
 		return "", errors.New("error creating sqlString: insert statements must specify a table")
 	}
 
 	var cols []interface{}
-	for _, col := range columns {
+	var vals []interface{}
+	for col, val := range values {
 		cols = append(cols, col)
+		vals = append(vals, val)
 	}
 	q, _, err := dialect.Insert(table).
 		Cols(cols...).
-		Vals(values).
+		Vals(vals).
+		ToSQL()
+
+	return q, err
+}
+
+func (b *ansiQueryBuilder) buildUpdate(
+	table string,
+	keys map[string]interface{},
+	values map[string]interface{},
+) (string, error) {
+	if table == "" {
+		return "", errors.New("table name not provided")
+	}
+	if len(keys) == 0 {
+		return "", errors.New("no keys provided")
+	}
+	if len(values) == 0 {
+		return "", errors.New("no values provided")
+	}
+
+	// transforms keys map into a goqu.Ex
+	w := goqu.Ex{}
+	for k, v := range keys {
+		w[k] = v
+	}
+	q, _, err := dialect.Update(table).
+		Set(values).
+		Where(w).
+		ToSQL()
+
+	return q, err
+}
+
+func (b *ansiQueryBuilder) buildDelete(
+	table string,
+	keys map[string]interface{},
+) (string, error) {
+	if table == "" {
+		return "", errors.New("table name not provided")
+	}
+	if len(keys) == 0 {
+		return "", errors.New("no keys provided")
+	}
+
+	// transforms keys map into a goqu.Ex
+	w := goqu.Ex{}
+	for k, v := range keys {
+		w[k] = v
+	}
+	q, _, err := dialect.Delete(table).
+		Where(w).
 		ToSQL()
 
 	return q, err

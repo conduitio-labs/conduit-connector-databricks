@@ -9,6 +9,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/matryer/is v1.4.1
 	github.com/rs/zerolog v1.29.1
+	golang.org/x/exp v0.0.0-20221114191408-850992195362
 )
 
 require (
@@ -56,7 +57,6 @@ require (
 	go.uber.org/goleak v1.2.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.3.0 // indirect
-	golang.org/x/exp v0.0.0-20221114191408-850992195362 // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
