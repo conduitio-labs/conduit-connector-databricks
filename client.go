@@ -196,7 +196,7 @@ func (c *sqlClient) Delete(ctx context.Context, record sdk.Record) error {
 	// as we're not even sure that a row with the same key has already been inserted
 	_, err = c.db.ExecContext(ctx, sqlString)
 	if err != nil {
-		return fmt.Errorf("failed update: %w", err)
+		return fmt.Errorf("failed delete: %w", err)
 	}
 
 	return nil
