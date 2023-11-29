@@ -2,6 +2,8 @@ module github.com/conduitio-labs/conduit-connector-databricks
 
 go 1.21
 
+toolchain go1.21.1
+
 require (
 	github.com/conduitio/conduit-connector-sdk v0.6.0
 	github.com/databricks/databricks-sql-go v1.2.0
@@ -24,7 +26,6 @@ require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/goccy/go-json v0.9.11 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/flatbuffers v2.0.8+incompatible // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
