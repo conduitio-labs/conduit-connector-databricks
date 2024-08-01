@@ -4,7 +4,7 @@ go 1.22.2
 
 require (
 	github.com/conduitio/conduit-connector-sdk v0.9.1
-	github.com/databricks/databricks-sql-go v1.5.7
+	github.com/databricks/databricks-sql-go v1.6.0
 	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/golang/mock v1.6.0
 	github.com/golangci/golangci-lint v1.59.1
