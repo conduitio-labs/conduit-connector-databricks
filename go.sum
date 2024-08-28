@@ -150,8 +150,8 @@ github.com/curioswitch/go-reassign v0.2.0 h1:G9UZyOcpk/d7Gd6mqYgd8XYWFMw/znxwGDU
 github.com/curioswitch/go-reassign v0.2.0/go.mod h1:x6OpXuWvgfQaMGks2BZybTngWjT84hqJfKoO8Tt/Roc=
 github.com/daixiang0/gci v0.13.4 h1:61UGkmpoAcxHM2hhNkZEf5SzwQtWJXTSws7jaPyqwlw=
 github.com/daixiang0/gci v0.13.4/go.mod h1:12etP2OniiIdP4q+kjUGrC/rUagga7ODbqsom5Eo5Yk=
-github.com/databricks/databricks-sql-go v1.6.0 h1:sYAvzZ8f3LRe/c2OWxxoc4dyjPMvyFMDBJQMh+6r5Ao=
-github.com/databricks/databricks-sql-go v1.6.0/go.mod h1:/FB8hVRN/KGnWStEyz19r2r7TmfBsK8nUv6yMid//tU=
+github.com/databricks/databricks-sql-go v1.6.1 h1:SOAwVdw/N3AZ5ECJYI49SBUncNy61WzOpzlJFZ17O5g=
+github.com/databricks/databricks-sql-go v1.6.1/go.mod h1:/FB8hVRN/KGnWStEyz19r2r7TmfBsK8nUv6yMid//tU=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
