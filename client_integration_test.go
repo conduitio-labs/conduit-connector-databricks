@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/conduitio/conduit-connector-sdk"
+	"github.com/conduitio/conduit-commons/opencdc"
 	dbsql "github.com/databricks/databricks-sql-go"
 	"github.com/matryer/is"
 )
@@ -145,13 +145,13 @@ func TestSqlClient_Insert(t *testing.T) {
 	wantFullTime := true
 	wantUpdatedAt := time.Now().Truncate(time.Millisecond).UTC()
 
-	rec := sdk.Record{
-		Position:  sdk.Position("test-pos"),
-		Operation: sdk.OperationCreate,
+	rec := opencdc.Record{
+		Position:  opencdc.Position("test-pos"),
+		Operation: opencdc.OperationCreate,
 		Metadata:  nil,
-		Key:       sdk.StructuredData{"id": wantID},
-		Payload: sdk.Change{
-			After: sdk.StructuredData{
+		Key:       opencdc.StructuredData{"id": wantID},
+		Payload: opencdc.Change{
+			After: opencdc.StructuredData{
 				"name":       wantName,
 				"full_time":  wantFullTime,
 				"updated_at": wantUpdatedAt,
@@ -200,13 +200,13 @@ func TestSqlClient_Insert_NonExistingColumn(t *testing.T) {
 	err = underTest.Open(ctx, th.cfg)
 	is.NoErr(err)
 
-	rec := sdk.Record{
-		Position:  sdk.Position("test-pos"),
-		Operation: sdk.OperationCreate,
+	rec := opencdc.Record{
+		Position:  opencdc.Position("test-pos"),
+		Operation: opencdc.OperationCreate,
 		Metadata:  nil,
-		Key:       sdk.StructuredData{"id": 123},
-		Payload: sdk.Change{
-			After: sdk.StructuredData{
+		Key:       opencdc.StructuredData{"id": 123},
+		Payload: opencdc.Change{
+			After: opencdc.StructuredData{
 				"foobar": "foobar",
 			},
 		},
@@ -238,13 +238,13 @@ func TestClient_Update_DoesntExist(t *testing.T) {
 	is.NoErr(err)
 
 	// perform update
-	rec := sdk.Record{
-		Position:  sdk.Position("test-pos"),
-		Operation: sdk.OperationUpdate,
+	rec := opencdc.Record{
+		Position:  opencdc.Position("test-pos"),
+		Operation: opencdc.OperationUpdate,
 		Metadata:  nil,
-		Key:       sdk.StructuredData{"id": 123},
-		Payload: sdk.Change{
-			After: sdk.StructuredData{
+		Key:       opencdc.StructuredData{"id": 123},
+		Payload: opencdc.Change{
+			After: opencdc.StructuredData{
 				"name": "a name",
 			},
 		},
@@ -292,13 +292,13 @@ func TestClient_Update_Partial(t *testing.T) {
 	is.Equal(int64(1), affected)
 
 	// perform update
-	rec := sdk.Record{
-		Position:  sdk.Position("test-pos"),
-		Operation: sdk.OperationUpdate,
+	rec := opencdc.Record{
+		Position:  opencdc.Position("test-pos"),
+		Operation: opencdc.OperationUpdate,
 		Metadata:  nil,
-		Key:       sdk.StructuredData{"id": wantID},
-		Payload: sdk.Change{
-			After: sdk.StructuredData{
+		Key:       opencdc.StructuredData{"id": wantID},
+		Payload: opencdc.Change{
+			After: opencdc.StructuredData{
 				"name": wantName,
 				// full_time left out
 				"updated_at": wantUpdatedAt,
@@ -361,11 +361,11 @@ func TestClient_Delete_Exists(t *testing.T) {
 	is.Equal(int64(1), affected)
 
 	// perform update
-	rec := sdk.Record{
-		Position:  sdk.Position("test-pos"),
-		Operation: sdk.OperationDelete,
+	rec := opencdc.Record{
+		Position:  opencdc.Position("test-pos"),
+		Operation: opencdc.OperationDelete,
 		Metadata:  nil,
-		Key:       sdk.StructuredData{"id": id},
+		Key:       opencdc.StructuredData{"id": id},
 	}
 	err = underTest.Delete(ctx, rec)
 	is.NoErr(err)
@@ -394,11 +394,11 @@ func TestClient_Delete_DoesntExist(t *testing.T) {
 	is.NoErr(err)
 
 	// perform update
-	rec := sdk.Record{
-		Position:  sdk.Position("test-pos"),
-		Operation: sdk.OperationDelete,
+	rec := opencdc.Record{
+		Position:  opencdc.Position("test-pos"),
+		Operation: opencdc.OperationDelete,
 		Metadata:  nil,
-		Key:       sdk.StructuredData{"id": 123},
+		Key:       opencdc.StructuredData{"id": 123},
 	}
 	err = underTest.Delete(ctx, rec)
 	is.NoErr(err)
