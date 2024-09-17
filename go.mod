@@ -1,7 +1,11 @@
 module github.com/conduitio-labs/conduit-connector-databricks
 
-go 1.22.2
+go 1.22.5
+
+toolchain go1.23.1
+
 require (
+	github.com/conduitio/conduit-commons v0.3.0
 	github.com/conduitio/conduit-connector-sdk v0.10.1
 	github.com/databricks/databricks-sql-go v1.6.1
 	github.com/doug-martin/goqu/v9 v9.19.0
@@ -52,7 +56,6 @@ require (
 	github.com/charithe/durationcheck v0.0.10 // indirect
 	github.com/chavacava/garif v0.1.0 // indirect
 	github.com/ckaznocha/intrange v0.2.0 // indirect
-	github.com/conduitio/conduit-commons v0.3.0 // indirect
 	github.com/conduitio/conduit-connector-protocol v0.7.0 // indirect
 	github.com/coreos/go-oidc/v3 v3.5.0 // indirect
 	github.com/curioswitch/go-reassign v0.2.0 // indirect

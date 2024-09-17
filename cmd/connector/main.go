@@ -15,9 +15,8 @@
 package main
 
 import (
-	sdk "github.com/conduitio/conduit-connector-sdk"
-
 	databricks "github.com/conduitio-labs/conduit-connector-databricks"
+	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
 func main() {
