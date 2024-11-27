@@ -21,7 +21,7 @@ import (
 	databricks "github.com/conduitio-labs/conduit-connector-databricks"
 	"github.com/conduitio-labs/conduit-connector-databricks/mock"
 	sdk "github.com/conduitio/conduit-connector-sdk"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	"github.com/matryer/is"
 )
 

@@ -11,6 +11,7 @@ require (
 	github.com/golangci/golangci-lint v1.62.2
 	github.com/matryer/is v1.4.1
 	github.com/rs/zerolog v1.33.0
+	go.uber.org/mock v0.5.0
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
 )
 
@@ -222,7 +223,6 @@ require (
 	go-simpler.org/sloglint v0.7.2 // indirect
 	go.uber.org/automaxprocs v1.6.0 // indirect
 	go.uber.org/goleak v1.3.0 // indirect
-	go.uber.org/mock v0.5.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/crypto v0.29.0 // indirect
