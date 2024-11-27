@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	databricks "github.com/conduitio-labs/conduit-connector-databricks"
-	sdk "github.com/conduitio/conduit-connector-sdk"
+	"github.com/conduitio/conduit-commons/opencdc"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -51,7 +51,7 @@ func (mr *ClientMockRecorder) Close() *gomock.Call {
 }
 
 // Delete mocks base method.
-func (m *Client) Delete(arg0 context.Context, arg1 sdk.Record) error {
+func (m *Client) Delete(arg0 context.Context, arg1 opencdc.Record) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -65,7 +65,7 @@ func (mr *ClientMockRecorder) Delete(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // Insert mocks base method.
-func (m *Client) Insert(arg0 context.Context, arg1 sdk.Record) error {
+func (m *Client) Insert(arg0 context.Context, arg1 opencdc.Record) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Insert", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -93,7 +93,7 @@ func (mr *ClientMockRecorder) Open(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // Update mocks base method.
-func (m *Client) Update(arg0 context.Context, arg1 sdk.Record) error {
+func (m *Client) Update(arg0 context.Context, arg1 opencdc.Record) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", arg0, arg1)
 	ret0, _ := ret[0].(error)

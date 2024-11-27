@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 	dbsql "github.com/databricks/databricks-sql-go"
 	"github.com/rs/zerolog"
@@ -97,15 +98,15 @@ func (c *sqlClient) Close() error {
 	return nil
 }
 
-func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
+func (c *sqlClient) Insert(ctx context.Context, record opencdc.Record) error {
 	sdk.Logger(ctx).Trace().Msg("inserting record")
 
-	payload := make(sdk.StructuredData)
+	payload := make(opencdc.StructuredData)
 	if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
 		return fmt.Errorf("error unmarshalling payload: %w", err)
 	}
 
-	key := make(sdk.StructuredData)
+	key := make(opencdc.StructuredData)
 	if err := json.Unmarshal(record.Key.Bytes(), &key); err != nil {
 		return fmt.Errorf("error unmarshalling key: %w", err)
 	}
@@ -144,7 +145,7 @@ func (c *sqlClient) Insert(ctx context.Context, record sdk.Record) error {
 	return nil
 }
 
-func (c *sqlClient) Update(ctx context.Context, record sdk.Record) error {
+func (c *sqlClient) Update(ctx context.Context, record opencdc.Record) error {
 	sdk.Logger(ctx).Trace().Msg("updating record")
 
 	// nothing to update
@@ -152,12 +153,12 @@ func (c *sqlClient) Update(ctx context.Context, record sdk.Record) error {
 		return nil
 	}
 
-	payload := make(sdk.StructuredData)
+	payload := make(opencdc.StructuredData)
 	if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
 		return fmt.Errorf("error unmarshalling payload: %w", err)
 	}
 
-	key := make(sdk.StructuredData)
+	key := make(opencdc.StructuredData)
 	if err := json.Unmarshal(record.Key.Bytes(), &key); err != nil {
 		return fmt.Errorf("error unmarshalling key: %w", err)
 	}
@@ -178,10 +179,10 @@ func (c *sqlClient) Update(ctx context.Context, record sdk.Record) error {
 	return nil
 }
 
-func (c *sqlClient) Delete(ctx context.Context, record sdk.Record) error {
+func (c *sqlClient) Delete(ctx context.Context, record opencdc.Record) error {
 	sdk.Logger(ctx).Trace().Msg("deleting record")
 
-	key := make(sdk.StructuredData)
+	key := make(opencdc.StructuredData)
 	if err := json.Unmarshal(record.Key.Bytes(), &key); err != nil {
 		return fmt.Errorf("error unmarshalling key: %w", err)
 	}
