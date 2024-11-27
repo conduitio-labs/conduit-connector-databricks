@@ -18,6 +18,6 @@ package databricks
 
 import (
 	_ "github.com/conduitio/conduit-commons/paramgen"
-	_ "github.com/golang/mock/mockgen"
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
+	_ "go.uber.org/mock/mockgen"
 )

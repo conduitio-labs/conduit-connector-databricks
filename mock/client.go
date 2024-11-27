@@ -22,6 +22,7 @@ import (
 type Client struct {
 	ctrl     *gomock.Controller
 	recorder *ClientMockRecorder
+	isgomock struct{}
 }
 
 // ClientMockRecorder is the mock recorder for Client.
@@ -56,31 +57,31 @@ func (mr *ClientMockRecorder) Close() *gomock.Call {
 }
 
 // Delete mocks base method.
-func (m *Client) Delete(arg0 context.Context, arg1 opencdc.Record) error {
+func (m *Client) Delete(ctx context.Context, record opencdc.Record) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
+	ret := m.ctrl.Call(m, "Delete", ctx, record)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *ClientMockRecorder) Delete(arg0, arg1 any) *gomock.Call {
+func (mr *ClientMockRecorder) Delete(ctx, record any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*Client)(nil).Delete), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*Client)(nil).Delete), ctx, record)
 }
 
 // Insert mocks base method.
-func (m *Client) Insert(arg0 context.Context, arg1 opencdc.Record) error {
+func (m *Client) Insert(ctx context.Context, record opencdc.Record) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Insert", arg0, arg1)
+	ret := m.ctrl.Call(m, "Insert", ctx, record)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Insert indicates an expected call of Insert.
-func (mr *ClientMockRecorder) Insert(arg0, arg1 any) *gomock.Call {
+func (mr *ClientMockRecorder) Insert(ctx, record any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*Client)(nil).Insert), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*Client)(nil).Insert), ctx, record)
 }
 
 // Open mocks base method.
@@ -98,15 +99,15 @@ func (mr *ClientMockRecorder) Open(arg0, arg1 any) *gomock.Call {
 }
 
 // Update mocks base method.
-func (m *Client) Update(arg0 context.Context, arg1 opencdc.Record) error {
+func (m *Client) Update(ctx context.Context, record opencdc.Record) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", arg0, arg1)
+	ret := m.ctrl.Call(m, "Update", ctx, record)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update.
-func (mr *ClientMockRecorder) Update(arg0, arg1 any) *gomock.Call {
+func (mr *ClientMockRecorder) Update(ctx, record any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*Client)(nil).Update), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*Client)(nil).Update), ctx, record)
 }

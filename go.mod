@@ -7,7 +7,6 @@ require (
 	github.com/conduitio/conduit-connector-sdk v0.12.0
 	github.com/databricks/databricks-sql-go v1.6.1
 	github.com/doug-martin/goqu/v9 v9.19.0
-	github.com/golang/mock v1.6.0
 	github.com/golangci/golangci-lint v1.62.2
 	github.com/matryer/is v1.4.1
 	github.com/rs/zerolog v1.33.0
