@@ -14,13 +14,15 @@
 
 package databricks
 
-//go:generate paramgen -output=paramgen_config.go Config
+//go:generate paramgen -output=paramgen_dest.go Config
 //go:generate mockgen -destination=mock/client.go -package=mock -mock_names=Client=Client . Client
 
 import (
 	"context"
 	"fmt"
 
+	"github.com/conduitio/conduit-commons/config"
+	"github.com/conduitio/conduit-commons/opencdc"
 	sdk "github.com/conduitio/conduit-connector-sdk"
 )
 
@@ -41,9 +43,9 @@ type Client interface {
 	Open(context.Context, Config) error
 	Close() error
 
-	Insert(ctx context.Context, record sdk.Record) error
-	Update(ctx context.Context, record sdk.Record) error
-	Delete(ctx context.Context, record sdk.Record) error
+	Insert(ctx context.Context, record opencdc.Record) error
+	Update(ctx context.Context, record opencdc.Record) error
+	Delete(ctx context.Context, record opencdc.Record) error
 }
 
 type Destination struct {
@@ -63,13 +65,13 @@ func NewDestinationWithClient(c Client) sdk.Destination {
 	)
 }
 
-func (d *Destination) Parameters() map[string]sdk.Parameter {
+func (d *Destination) Parameters() config.Parameters {
 	return d.config.Parameters()
 }
 
-func (d *Destination) Configure(ctx context.Context, cfg map[string]string) error {
+func (d *Destination) Configure(ctx context.Context, cfg config.Config) error {
 	sdk.Logger(ctx).Info().Msg("Configuring Destination...")
-	err := sdk.Util.ParseConfig(cfg, &d.config)
+	err := sdk.Util.ParseConfig(ctx, cfg, &d.config, NewDestination().Parameters())
 	if err != nil {
 		return fmt.Errorf("invalid config: %w", err)
 	}
@@ -87,7 +89,7 @@ func (d *Destination) Open(ctx context.Context) error {
 	return nil
 }
 
-func (d *Destination) Write(ctx context.Context, records []sdk.Record) (int, error) {
+func (d *Destination) Write(ctx context.Context, records []opencdc.Record) (int, error) {
 	sdk.Logger(ctx).Trace().Msgf("writing %v records", len(records))
 
 	for i, record := range records {

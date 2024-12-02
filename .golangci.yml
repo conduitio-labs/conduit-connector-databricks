@@ -1,3 +1,6 @@
+run:
+  timeout: 5m
+
 linters-settings:
   gofmt:
     simplify: false
@@ -31,7 +34,7 @@ linters:
     # - errorlint
     # - exhaustive
     # - exhaustivestruct
-    - exportloopref
+    - copyloopvar
     # - forbidigo
     # - forcetypeassert
     # - funlen

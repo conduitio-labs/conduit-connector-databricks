@@ -28,3 +28,5 @@ make test
 | name  | description                                                                                                            | required | default value |
 |-------|------------------------------------------------------------------------------------------------------------------------|----------|---------------|
 | `dsn` | [DSN connection string](https://docs.databricks.com/dev-tools/go-sql-driver.html#connect-with-a-dsn-connection-string) | true     | ""            |
+
+![scarf pixel](https://static.scarf.sh/a.png?x-pxid=ebac069a-c2dc-45b5-aaf1-785790bd20c5)

@@ -21,17 +21,17 @@ import (
 	databricks "github.com/conduitio-labs/conduit-connector-databricks"
 	"github.com/conduitio-labs/conduit-connector-databricks/mock"
 	sdk "github.com/conduitio/conduit-connector-sdk"
-	"github.com/golang/mock/gomock"
 	"github.com/matryer/is"
+	"go.uber.org/mock/gomock"
 )
 
 func TestConfigure(t *testing.T) {
 	is := is.New(t)
 	ctx := context.Background()
 	client := mock.NewClient(gomock.NewController(t))
-	cfgMap := map[string]string{"token": "test"}
+	cfgMap := map[string]string{"token": "test", "host": "test", "httpPath": "test", "tableName": "test"}
 	var cfg databricks.Config
-	err := sdk.Util.ParseConfig(cfgMap, &cfg)
+	err := sdk.Util.ParseConfig(ctx, cfgMap, &cfg, databricks.NewDestination().Parameters())
 	is.NoErr(err)
 
 	underTest := databricks.NewDestinationWithClient(client)
