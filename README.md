@@ -27,6 +27,10 @@ make test
 
 | name  | description                                                                                                            | required | default value |
 |-------|------------------------------------------------------------------------------------------------------------------------|----------|---------------|
-| `dsn` | [DSN connection string](https://docs.databricks.com/dev-tools/go-sql-driver.html#connect-with-a-dsn-connection-string) | true     | ""            |
+| `token` | Personal access token | true     |             |
+| `host` | Databricks server hostname | true     |             |
+| `port` | Databricks port | false     | `443`            |
+| `httpPath` | Databricks compute resources URL | true     |             |
+| `tableName` | Default table to which records will be written | true     |             |
 
 ![scarf pixel](https://static.scarf.sh/a.png?x-pxid=ebac069a-c2dc-45b5-aaf1-785790bd20c5)
