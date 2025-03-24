@@ -9,7 +9,7 @@ require (
 	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/golangci/golangci-lint v1.64.8
 	github.com/matryer/is v1.4.1
-	github.com/rs/zerolog v1.33.0
+	github.com/rs/zerolog v1.34.0
 	go.uber.org/mock v0.5.0
 	golang.org/x/exp v0.0.0-20250228200357-dead58393ab7
 )
