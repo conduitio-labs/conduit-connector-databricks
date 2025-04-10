@@ -5,7 +5,7 @@ go 1.24.2
 require (
 	github.com/conduitio/conduit-commons v0.5.2
 	github.com/conduitio/conduit-connector-sdk v0.12.0
-	github.com/databricks/databricks-sql-go v1.6.2
+	github.com/databricks/databricks-sql-go v1.7.0
 	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/matryer/is v1.4.1
 	github.com/rs/zerolog v1.34.0
