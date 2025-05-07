@@ -100,21 +100,66 @@ func (c *sqlClient) Close() error {
 
 func (c *sqlClient) Insert(ctx context.Context, record opencdc.Record) error {
 	sdk.Logger(ctx).Trace().Msg("inserting record")
+	sdk.Logger(ctx).Info().Msgf("Inserting record: %v", record)
 
 	payload := make(opencdc.StructuredData)
 	if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err != nil {
+		sdk.Logger(ctx).Info().Msgf("Error unmarshalling payload: %v", err)
 		return fmt.Errorf("error unmarshalling payload: %w", err)
 	}
+	sdk.Logger(ctx).Info().Msgf("Payload: %v", payload)
 
+	sdk.Logger(ctx).Info().Msgf("Key before unmarshalling: %v", record.Key)
 	key := make(opencdc.StructuredData)
 	if err := json.Unmarshal(record.Key.Bytes(), &key); err != nil {
-		return fmt.Errorf("error unmarshalling key: %w", err)
+		sdk.Logger(ctx).Info().Msgf("Error unmarshalling key: %v", err)
+
+		// Check if payload contains an ID field to use as a fallback key
+		if id, ok := payload["id"]; ok {
+			sdk.Logger(ctx).Info().Msgf("Using payload ID as key: %v", id)
+			key = opencdc.StructuredData{"id": id}
+		} else {
+			sdk.Logger(ctx).Info().Msgf("Key: %v", key)
+			return fmt.Errorf("error unmarshalling key and no ID in payload to use as fallback: %w", err)
+		}
 	}
 
-	insertValues := c.merge(payload, key)
+	// Process the payload to convert nested structures to JSON strings
+	processedPayload := make(opencdc.StructuredData)
+	for k, v := range payload {
+		switch val := v.(type) {
+		case map[string]interface{}, []interface{}:
+			// Convert complex structures back to JSON strings
+			jsonBytes, err := json.Marshal(val)
+			if err != nil {
+				return fmt.Errorf("error marshalling nested structure for field %s: %w", k, err)
+			}
+			processedPayload[k] = string(jsonBytes)
+		default:
+			processedPayload[k] = v
+		}
+	}
+
+	// Process the key similarly
+	processedKey := make(opencdc.StructuredData)
+	for k, v := range key {
+		switch val := v.(type) {
+		case map[string]interface{}, []interface{}:
+			jsonBytes, err := json.Marshal(val)
+			if err != nil {
+				return fmt.Errorf("error marshalling nested structure for key field %s: %w", k, err)
+			}
+			processedKey[k] = string(jsonBytes)
+		default:
+			processedKey[k] = v
+		}
+	}
+
+	insertValues := c.merge(processedPayload, processedKey)
 
 	sqlString, err := c.queryBuilder.buildInsert(c.tableName, insertValues)
 	if err != nil {
+		sdk.Logger(ctx).Info().Msgf("Error building query: %v", err)
 		return fmt.Errorf("failed building query: %w", err)
 	}
 	sdk.Logger(ctx).Trace().Msgf("insert sql string\n%v\n", sqlString)
@@ -160,10 +205,47 @@ func (c *sqlClient) Update(ctx context.Context, record opencdc.Record) error {
 
 	key := make(opencdc.StructuredData)
 	if err := json.Unmarshal(record.Key.Bytes(), &key); err != nil {
-		return fmt.Errorf("error unmarshalling key: %w", err)
+		// Check if payload contains an ID field to use as a fallback key
+		if id, ok := payload["id"]; ok {
+			sdk.Logger(ctx).Info().Msgf("Using payload ID as key: %v", id)
+			key = opencdc.StructuredData{"id": id}
+		} else {
+			return fmt.Errorf("error unmarshalling key and no ID in payload to use as fallback: %w", err)
+		}
 	}
 
-	sqlString, err := c.queryBuilder.buildUpdate(c.tableName, key, payload)
+	// Process the payload to convert nested structures to JSON strings
+	processedPayload := make(opencdc.StructuredData)
+	for k, v := range payload {
+		switch val := v.(type) {
+		case map[string]interface{}, []interface{}:
+			// Convert complex structures back to JSON strings
+			jsonBytes, err := json.Marshal(val)
+			if err != nil {
+				return fmt.Errorf("error marshalling nested structure for field %s: %w", k, err)
+			}
+			processedPayload[k] = string(jsonBytes)
+		default:
+			processedPayload[k] = v
+		}
+	}
+
+	// Process the key similarly
+	processedKey := make(opencdc.StructuredData)
+	for k, v := range key {
+		switch val := v.(type) {
+		case map[string]interface{}, []interface{}:
+			jsonBytes, err := json.Marshal(val)
+			if err != nil {
+				return fmt.Errorf("error marshalling nested structure for key field %s: %w", k, err)
+			}
+			processedKey[k] = string(jsonBytes)
+		default:
+			processedKey[k] = v
+		}
+	}
+
+	sqlString, err := c.queryBuilder.buildUpdate(c.tableName, processedKey, processedPayload)
 	if err != nil {
 		return fmt.Errorf("failed building update query: %w", err)
 	}
@@ -184,7 +266,22 @@ func (c *sqlClient) Delete(ctx context.Context, record opencdc.Record) error {
 
 	key := make(opencdc.StructuredData)
 	if err := json.Unmarshal(record.Key.Bytes(), &key); err != nil {
-		return fmt.Errorf("error unmarshalling key: %w", err)
+		// For Delete, we need payload data too since we're looking for ID
+		payload := make(opencdc.StructuredData)
+		if record.Payload.After != nil && len(record.Payload.After.Bytes()) > 0 {
+			if err := json.Unmarshal(record.Payload.After.Bytes(), &payload); err == nil {
+				if id, ok := payload["id"]; ok {
+					sdk.Logger(ctx).Info().Msgf("Using payload ID as key: %v", id)
+					key = opencdc.StructuredData{"id": id}
+				} else {
+					return fmt.Errorf("error unmarshalling key and no ID in payload to use as fallback: %w", err)
+				}
+			} else {
+				return fmt.Errorf("error unmarshalling key and payload: %w", err)
+			}
+		} else {
+			return fmt.Errorf("error unmarshalling key and no payload data available: %w", err)
+		}
 	}
 
 	sqlString, err := c.queryBuilder.buildDelete(c.tableName, key)
