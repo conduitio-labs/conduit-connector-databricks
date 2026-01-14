@@ -73,6 +73,7 @@ func (d *Destination) Configure(ctx context.Context, cfg config.Config) error {
 	sdk.Logger(ctx).Info().Msg("Configuring Destination...")
 	err := sdk.Util.ParseConfig(ctx, cfg, &d.config, NewDestination().Parameters())
 	if err != nil {
+		sdk.Logger(ctx).Error().Msgf("Invalid config: %v", err)
 		return fmt.Errorf("invalid config: %w", err)
 	}
 
@@ -86,13 +87,48 @@ func (d *Destination) Open(ctx context.Context) error {
 		return fmt.Errorf("failed opening client: %w", err)
 	}
 
+	sdk.Logger(ctx).Info().Msgf("Connected to Databricks at %s:%d", d.config.Host, d.config.Port)
+
 	return nil
 }
 
 func (d *Destination) Write(ctx context.Context, records []opencdc.Record) (int, error) {
 	sdk.Logger(ctx).Trace().Msgf("writing %v records", len(records))
+	sdk.Logger(ctx).Info().Msgf("Writing records to Databricks at %s:%d", d.config.Host, d.config.Port)
 
 	for i, record := range records {
+		sdk.Logger(ctx).Info().Msgf("Writing record %d to Databricks at %s:%d", i, d.config.Host, d.config.Port)
+		sdk.Logger(ctx).Info().Msgf("Record: %v", record)
+		sdk.Logger(ctx).Info().Msgf("Record operation: %v", record.Operation)
+		sdk.Logger(ctx).Info().Msgf("Record key: %v", record.Key)
+		sdk.Logger(ctx).Info().Msgf("Record payload: %v", record.Payload)
+		sdk.Logger(ctx).Info().Msgf("Record payload before: %v", record.Payload.Before)
+		sdk.Logger(ctx).Info().Msgf("Record payload after: %v", record.Payload.After)
+		// sdk.Logger(ctx).Info().Msgf("Record payload before bytes: %v", record.Payload.Before.Bytes())
+		// sdk.Logger(ctx).Info().Msgf("Record payload after bytes: %v", record.Payload.After.Bytes())
+		// sdk.Logger(ctx).Info().Msgf("Record payload before string: %v", string(record.Payload.Before.Bytes()))
+		// sdk.Logger(ctx).Info().Msgf("Record payload after string: %v", string(record.Payload.After.Bytes()))
+		// sdk.Logger(ctx).Info().Msgf("Record metadata: %v", record.Metadata)
+
+		// // Add base64 decoding for payload
+		// if record.Payload.After != nil && len(record.Payload.After.Bytes()) > 0 {
+		// 	decoded, err := base64.StdEncoding.DecodeString(string(record.Payload.After.Bytes()))
+		// 	if err != nil {
+		// 		sdk.Logger(ctx).Info().Msgf("Failed to decode payload after as base64: %v", err)
+		// 	} else {
+		// 		sdk.Logger(ctx).Info().Msgf("Record payload after (base64 decoded): %v", string(decoded))
+		// 	}
+		// }
+
+		// if record.Payload.Before != nil && len(record.Payload.Before.Bytes()) > 0 {
+		// 	decoded, err := base64.StdEncoding.DecodeString(string(record.Payload.Before.Bytes()))
+		// 	if err != nil {
+		// 		sdk.Logger(ctx).Info().Msgf("Failed to decode payload before as base64: %v", err)
+		// 	} else {
+		// 		sdk.Logger(ctx).Info().Msgf("Record payload before (base64 decoded): %v", string(decoded))
+		// 	}
+		// }
+
 		err := sdk.Util.Destination.Route(
 			ctx,
 			record,
@@ -102,10 +138,11 @@ func (d *Destination) Write(ctx context.Context, records []opencdc.Record) (int,
 			d.client.Insert,
 		)
 		if err != nil {
+			sdk.Logger(ctx).Error().Msgf("Unable to handle record: %v", err)
 			return i, fmt.Errorf("unable to handle record: %w", err)
 		}
 	}
-
+	sdk.Logger(ctx).Info().Msgf("Wrote %d records", len(records))
 	return len(records), nil
 }
 
